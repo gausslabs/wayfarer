@@ -1,9 +1,7 @@
-`ifndef AXIS_SOURCE_SV
- `define AXIS_SOURCE_SV
+`ifndef AXIS_REFERENCE_COMPORATOR_SV
+ `define AXIS_REFERENCE_COMPORATOR_SV
 
-// `include "AXIS.sv"
-
-module AXISSource #(
+module AXISReferenceComparator #(
   parameter DATA_WIDTH = 32,
   parameter ADDR_WIDTH = 10,
   parameter LIMIT      = (1<<ADDR_WIDTH),
@@ -11,9 +9,9 @@ module AXISSource #(
 ) (
   input wire clk,
   input wire resetn,
-  AXI4S.Master out
+  output logic test_pass,
+  AXI4S.Slave in 
 );
-
 ///////////////////////////////////////////////////////////////////////
 // Load the file into memory
 ///////////////////////////////////////////////////////////////////////
@@ -34,7 +32,7 @@ always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
-  if ((read_pointer <= LIMIT) & (out.ready))
+  if ((read_pointer <= LIMIT) & (in.valid))
     read_pointer <= read_pointer + 1;
 end
 else
@@ -43,27 +41,29 @@ begin
 end
 end
 
+assign in.ready = resetn;
+
 ///////////////////////////////////////////////////////////////////////
-// sending the data out
+// comparing the data
 ///////////////////////////////////////////////////////////////////////
+
 always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
-  out.valid <= (read_pointer <= (LIMIT - 1));
-  out.data <= data[read_pointer];
-  out.last <= (read_pointer == (LIMIT - 1));
-  out.keep <= ((1 << KEEP_WIDTH) - 1);
+  if(in.data == data[read_pointer])
+    test_pass <= test_pass & 1;
+  else
+    test_pass <= test_pass & 0;
 end
 else
 begin
-  out.valid <= 0;
-  out.data <= 0;
-  out.last <= 0;
-  out.keep <= 0;
+  test_pass <= 1;
 end
 end
 
+
 endmodule
+
 
 `endif
