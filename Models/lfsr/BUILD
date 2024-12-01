@@ -10,7 +10,7 @@ rust_binary(
     # Specifies dependencies for the binary.
     deps = [
         # Depend on the `substring_library` target, which is the crate you created.
-        '//lfsr-lib:lfsr_library'
+        '//Models/lfsr/lfsr-lib:lfsr_library'
     ],
     edition = "2021"
     

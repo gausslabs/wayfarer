@@ -1,13 +1,17 @@
 ///////////////////////////////////////////////////////////////////////
 // Simple 8 bit LFSR of the polynomial x^8 + x^6 + x^5 + x^4 + 1
 ///////////////////////////////////////////////////////////////////////
-struct LFSR {
+pub struct LFSR {
     state: u8,
     size: i32,
 }
 
+fn get_tap(state: u8,n: u8) -> u8 {
+    (state & (1<< n)) >> n
+}
+
 impl LFSR {
-    fn new(seed: u8,sequence_size: i32) -> Self {
+    pub fn new(seed: u8,sequence_size: i32) -> Self {
         LFSR { state: seed, size: sequence_size}
     }
 }
@@ -18,9 +22,9 @@ impl Iterator for LFSR {
     fn next(&mut self) -> Option<Self::Item> {
         let old_size = self.size;
         self.size -= 1;
-        let new: u8 = (self.state & (1<< 7)) ^ (self.state & (1<< 5)) ^ (self.state & (1<< 4)) ^ (self.state & (1<< 3));
+        let new: u8 = get_tap(self.state,7) ^ get_tap(self.state,5) ^ get_tap(self.state,4) ^ get_tap(self.state,3);
         let old = self.state;
-        self.state = (self.state << 1) & (new);
+        self.state = (self.state << 1) | (new);
         if old_size > 0 {
             Some(old)
         } else {
@@ -42,10 +46,23 @@ mod tests {
     }
 
     #[test]
+    fn max_length_test() {
+        let seed: u8 = 45;
+        let mut lfsr = LFSR::new(seed, 256);
+        let sequence = lfsr.map(|n| n).collect::<Vec<_>>();
+        let result = sequence.iter()
+                        .filter(|n| **n == seed)
+                        .collect::<Vec<_>>();
+        assert_eq!(result, vec![&seed, &seed]);
+    }
+
+
+    #[test]
     fn none_check() {
         let mut lfsr = LFSR::new(2, 0);
         let result = lfsr.next();
         assert_eq!(result, None);
+        assert_eq!(lfsr.size, 0);
     }
 
 }
