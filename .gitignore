@@ -1,5 +1,5 @@
 *.jou
 *.log
 .Xil/
-bazel-*/
+bazel-*
 MODULE.bazel.lock
