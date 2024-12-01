@@ -1,5 +1,6 @@
 *.jou
 *.log
 .Xil/
+.vscode/
 bazel-*
 MODULE.bazel.lock
