@@ -13,5 +13,4 @@ rust_binary(
         '//Models/lfsr/lfsr-lib:lfsr_library'
     ],
     edition = "2021"
-    
 )
