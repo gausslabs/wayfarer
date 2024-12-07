@@ -5,8 +5,8 @@
 module AXISComparator (
   input wire clk,
   input wire resetn,
-  AXI4S.Master in1,
-  AXI4S.Master in2,
+  AXI4S.Slave in1,
+  AXI4S.Slave in2,
   output logic equal
 );
 ///////////////////////////////////////////////////////////////////////

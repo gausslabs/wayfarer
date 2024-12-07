@@ -4,3 +4,8 @@
 .vscode/
 bazel-*
 MODULE.bazel.lock
+*.pb
+xsim.dir/
+*.wdb
+*.vcd
+*.hex

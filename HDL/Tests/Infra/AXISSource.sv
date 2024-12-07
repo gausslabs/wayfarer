@@ -34,7 +34,7 @@ always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
-  if ((read_pointer <= LIMIT) & (out.ready))
+  if ((read_pointer <= LIMIT) & (out.ready) & (out.valid))
     read_pointer <= read_pointer + 1;
 end
 else
@@ -46,23 +46,23 @@ end
 ///////////////////////////////////////////////////////////////////////
 // sending the data out
 ///////////////////////////////////////////////////////////////////////
-always_ff @ (posedge clk)
-begin
-if(resetn)
-begin
-  out.valid <= (read_pointer <= (LIMIT - 1));
-  out.data <= data[read_pointer];
-  out.last <= (read_pointer == (LIMIT - 1));
-  out.keep <= ((1 << KEEP_WIDTH) - 1);
-end
-else
-begin
-  out.valid <= 0;
-  out.data <= 0;
-  out.last <= 0;
-  out.keep <= 0;
-end
-end
+// always_ff @ (posedge clk)
+// begin
+// if(resetn)
+// begin
+  assign out.valid = (read_pointer <= (LIMIT - 1)) & resetn;
+  assign out.data  = data[read_pointer];
+  assign out.last  = (read_pointer == (LIMIT - 1));
+  assign out.keep  = ((1 << KEEP_WIDTH) - 1);
+// end
+// else
+// begin
+//   out.valid <= 0;
+//   out.data <= 0;
+//   out.last <= 0;
+//   out.keep <= 0;
+// end
+// end
 
 endmodule
 
