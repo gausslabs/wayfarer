@@ -9,3 +9,6 @@ clean-bazel:
 	rm -rf bazel-*
 
 sw-model-test: model-test clean-bazel
+
+lfsr-emit:
+	bazel run //Models/lfsr:lfsr_model -- /tmp/input.hex 63

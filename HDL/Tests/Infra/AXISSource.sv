@@ -1,7 +1,7 @@
 `ifndef AXIS_SOURCE_SV
  `define AXIS_SOURCE_SV
 
-// `include "AXIS.sv"
+`include "AXIS.sv"
 
 module AXISSource #(
   parameter DATA_WIDTH = 32,

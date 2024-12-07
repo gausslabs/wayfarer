@@ -26,6 +26,7 @@ begin
         _equal <= _equal & 1;
     else
         _equal <= _equal & 0;
+    $display("(%d) == (%d), equal %b", in1.data, in2.data, (in1.data == in2.data));
   end
 end
 else
