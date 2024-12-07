@@ -41,6 +41,19 @@ AXISReferenceComparator #(
 
 always #5 clk = ~clk;
 
+always_ff @(posedge clk)
+begin
+  if (resetn)
+  begin
+    assert (test_pass == 1) 
+    else 
+    begin
+      $error("Test Failed");
+      $finish();
+    end
+  end
+end
+
 initial
 begin
   $dumpfile("wave1.vcd"); 

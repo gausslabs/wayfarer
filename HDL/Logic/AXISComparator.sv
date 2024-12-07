@@ -35,6 +35,8 @@ begin
 end
 end
 
+assign equal = _equal;
+
 endmodule
 
 
