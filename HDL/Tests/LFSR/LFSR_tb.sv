@@ -57,7 +57,7 @@ end
 initial
 begin
   $dumpfile("wave1.vcd"); 
-  $dumpvars (0);
+  $dumpvars (0, LFSR_TB);
 end
 
 initial

@@ -9,3 +9,4 @@ xsim.dir/
 *.wdb
 *.vcd
 *.hex
+target/
