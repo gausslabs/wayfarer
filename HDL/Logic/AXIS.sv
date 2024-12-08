@@ -23,4 +23,36 @@ interface AXI4S;
 
 endinterface
 
+module Passthrough (
+  input wire clk,
+  input wire resetn,
+  AXI4S.Master out,
+  AXI4S.Slave in
+);
+
+always_ff @ (posedge clk)
+begin
+if(resetn)
+begin
+    if(out.ready)
+    begin
+        out.valid <= in.valid;
+        out.data  <= in.data;
+        out.keep  <= in.keep;
+        out.last  <= in.last;
+    end
+end
+else
+begin
+  out.valid <= 0;
+  out.data <= 0;
+  out.keep <= 0;
+  out.last <= 0;
+end
+end
+
+assign in.ready = out.ready;
+
+endmodule
+
 `endif
