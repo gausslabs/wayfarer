@@ -5,3 +5,8 @@ edition = "2021"
 
 [dependencies]
 rust = { git = "https://github.com/gausslabs/obfustopia.git" }
+tera = {version = "1.20.0"}
+serde = { version = "1.0",  features = ["derive"] }
+
+[dependencies.lazy_static]
+git = "https://github.com/Kimundi/lazy-static.rs"
