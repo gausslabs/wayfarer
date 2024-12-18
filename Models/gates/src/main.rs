@@ -1,4 +1,4 @@
-use std::{collections::{BTreeSet, HashSet}, error::Error, fs};
+use std::{collections::{BTreeSet, HashSet}, env, error::Error, fs};
 
 #[derive(Hash, Eq, PartialEq, Debug, PartialOrd, Ord, Clone, Copy)]
 pub enum Wires {
@@ -123,24 +123,9 @@ impl PermutationTree {
         permutaion_store
     }
 }
-#[macro_use(lazy_static)]
-extern crate lazy_static;
+
 use serde::Serialize;
 use tera::{Context, Tera};
-
-lazy_static! {
-    pub static ref TEMPLATES: Tera = {
-        let mut tera = match Tera::new("templates/**/*") {
-            Ok(t) => t,
-            Err(e) => {
-                println!("Parsing error(s): {}", e);
-                ::std::process::exit(1);
-            }
-        };
-        tera.autoescape_on(vec![".sv"]);
-        tera
-    };
-}
 
 #[derive(Debug, Serialize)]
 pub struct Case{
@@ -155,17 +140,53 @@ pub struct Permutation{
 }
 
 fn main() -> std::io::Result<()>{
+    // getting the arguments
+    let args = env::args().collect::<Vec<_>>();
+    
+    let (out_file_name, template_folder) = match  args.len()   {
+        1 => {
+            println!("[Warning] Using defaults out_file = permutation.sv template_dir = templates/**/*");
+            ("permutation.sv", "templates/**/*")
+        },
+        2 => {
+            println!("[Warning] Using default template_dir = templates/**/* and input out_file = {:?}", args[1]);
+            (args[1].as_str(), "templates/**/*")
+        },
+        3 => {
+            (args[1].as_str(), args[2].as_str())
+        },
+        _ => {
+            println!("[Warning] Arguments sent are improper {:?}",args);
+            println!("[INFO] The correct format is cmd [name of output file] [template folder location]. Both arguments are optional.");
+            std::process::exit(1);
+        }
+    };
+
+    // Creating the tera object
+    let templates: Tera = {
+        let mut tera = match Tera::new(template_folder) {
+            Ok(t) => t,
+            Err(e) => {
+                println!("Parsing error(s): {}", e);
+                ::std::process::exit(1);
+            }
+        };
+        tera.autoescape_on(vec![".sv"]);
+        tera
+    };
+
+    // Creating the permutation tree
     let root = PermutationTree::generate(Wires::all());
-    // println!("The tree is as follows!");
+    
     let permutaion_store = root.get_string_representation();
-    // println!("The full 2D list \n{:?}",permutaion_store);
-    // println!("The full list \n{:?}",permutaion_store.iter().map(|v|v.join(",")).collect::<Vec<String>>());
+
     let cases = permutaion_store.iter().enumerate().map(|(i, s)|{
         Case{index:i, permutations: s.iter().enumerate().map(|(i,p)| Permutation{index:i, value:p.clone()}).collect::<Vec<Permutation>>()}
     }).collect::<Vec<Case>>();
-    // println!("The full 2D list \n{:?}",cases);
+    
     let default = &cases[0];
-    println!("The default \n{:?}",default);
+    
+    // configuring the data for templating
     let mut context = Context::new();
     context.insert("module_name", &"SafePermutationGenerator");
     context.insert("perm_size", &bits(Wires::number_of_choices()));
@@ -174,11 +195,12 @@ fn main() -> std::io::Result<()>{
     context.insert("default", &default);
 
     // A one off template
-    Tera::one_off("hello", &Context::new(), true).unwrap();
+    Tera::one_off("safe_permutation", &Context::new(), true).unwrap();
 
-    match TEMPLATES.render("case_generator.sv.tpl", &context) {
+    // rendering the template
+    match templates.render("case_generator.sv.tpl", &context) {
         Ok(s) => {
-            fs::write("permutation.sv", s)?;
+            fs::write(out_file_name, s)?;
         },
         Err(e) => {
             println!("Error: {}", e);

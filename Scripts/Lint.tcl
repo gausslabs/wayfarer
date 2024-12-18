@@ -1,10 +1,10 @@
 set_part xc7a35tcpg236-1
 #  [glob ./HDL/*/*.sv]
 # read_verilog -sv [glob ./HDL/Tests/Infra/*.sv]
-set src_dirs [list "./HDL/Logic" "./HDL/Tests/Infra" ];
+set src_dirs [list "./HDL/Logic" "./HDL/Tests/Infra" "./HDL/Genrated" ];
 
 foreach i $src_dirs {
-    foreach file [glob -directory $i *.sv] {
+    foreach file [glob -nocomplain -directory $i *.sv] {
         read_verilog -sv $file
     }
 }

@@ -11,19 +11,19 @@ module {{module_name}} #(
 
 always_comb
 begin
-case(selection):
+case(selection)
 {% for case in cases %}
-  8'd{{case.index}}:
+  {{perm_size}}'d{{case.index}}:
   begin
     {% for permutation in case.permutations %}
-    permutation[{{permutation.index}}] = {{permutation.value}};
+    permutation[{{permutation.index}}] = {{port_size}}'d{{permutation.value}};
     {% endfor %}
   end
 {% endfor %}
   default:
   begin
     {% for permutation in default.permutations %}
-    permutation[{{permutation.index}}] = {{permutation.value}};
+    permutation[{{permutation.index}}] = {{port_size}}'d{{permutation.value}};
     {% endfor %}
   end
 endcase
