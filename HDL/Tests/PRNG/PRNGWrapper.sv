@@ -13,8 +13,8 @@ module PRNGWrapper #(
 );
 
 PRNG #(
-    parameter OUTPUT_SIZE = 4,
-    parameter LFSR_SIZE   = 8
+    .OUTPUT_SIZE(OUTPUT_SIZE),
+    .LFSR_SIZE(LFSR_SIZE)
 ) dut (
   .clk(clk),
   .resetn(resetn),
@@ -22,7 +22,7 @@ PRNG #(
   .seed(SEED),
   .excludeValue(EXCLUDE),
   .valid(out.valid),
-  .random_number(out.data)
+  .randomNumber(out.data)
 );
 
 endmodule

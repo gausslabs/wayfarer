@@ -12,8 +12,8 @@ module AXISComparator (
 ///////////////////////////////////////////////////////////////////////
 // comparing the data
 ///////////////////////////////////////////////////////////////////////
-assign in1.ready = 1;
-assign in2.ready = 1;
+assign in1.ready = in2.valid;
+assign in2.ready = in1.valid;
 
 logic _equal;
 always_ff @ (posedge clk)
@@ -26,7 +26,7 @@ begin
         _equal <= _equal & 1;
     else
         _equal <= _equal & 0;
-    $display("(%d) == (%d), equal %b", in1.data, in2.data, (in1.data == in2.data));
+    $display("[First Input](%d) == (%d)[Second Input], equal %b", in1.data, in2.data, (in1.data == in2.data));
   end
 end
 else

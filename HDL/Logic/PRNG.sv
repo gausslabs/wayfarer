@@ -16,7 +16,7 @@ module PRNG #(
 ///////////////////////////////////////////////////////////////////////
 // Internal variables
 ///////////////////////////////////////////////////////////////////////
-wire [OUTPUT_SIZE - 1:0] exclude;
+reg [OUTPUT_SIZE - 1:0] exclude;
 
 always_ff @ (posedge clk)
 begin
@@ -36,8 +36,8 @@ end
 
 typedef enum bit[1:0] { 
     WAIT,
-    GENRATE,
-    SEND
+    SEND,
+    GENRATE
  } FSM;
 
 FSM currentState, nextState;
@@ -50,7 +50,7 @@ begin
 end
 else
 begin
-  currentState <= 0;
+  currentState <= WAIT;
 end
 end
 logic clash;
@@ -60,22 +60,20 @@ begin
     WAIT:
         begin
           if (next) 
-            nextState = GENRATE;
+            nextState = SEND;
           else
             nextState = WAIT;
         end
-    GENRATE:
-        begin
-          if (~clash)
-            nextState == SEND;
-          else
-            nextState == GENRATE;
-        end
     SEND:
+      begin
+        nextState = GENRATE;
+      end
+    GENRATE:
       begin
         nextState = WAIT;
       end
-      
+    default:
+      nextState = WAIT;
   endcase
 end
 
@@ -84,12 +82,12 @@ end
 ///////////////////////////////////////////////////////////////////////
 
 assign clash = (randomNumber == exclude);
-assign valid = (currentState == SEND);
+assign valid = (currentState == SEND) & (~clash);
 
 LFSR lfsr (
   .clk           (clk   ),
   .resetn        (resetn),
-  .next          (next (currentState == GENRATE) ),
+  .next          (next & (currentState == GENRATE) ),
   .seed         (seed),
   .random_number(randomNumber)
 );
