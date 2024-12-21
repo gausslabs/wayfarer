@@ -16,66 +16,66 @@ case(selection)
   5'd0:
   begin
     
-    permutation[0] = 2'd0;
+    permutation[0] = 2'd3;
     
-    permutation[1] = 2'd1;
+    permutation[1] = 2'd0;
     
-    permutation[2] = 2'd2;
+    permutation[2] = 2'd1;
     
   end
 
   5'd1:
   begin
     
-    permutation[0] = 2'd0;
+    permutation[0] = 2'd3;
     
-    permutation[1] = 2'd1;
+    permutation[1] = 2'd0;
     
-    permutation[2] = 2'd3;
+    permutation[2] = 2'd2;
     
   end
 
   5'd2:
   begin
     
-    permutation[0] = 2'd0;
+    permutation[0] = 2'd3;
     
-    permutation[1] = 2'd2;
+    permutation[1] = 2'd1;
     
-    permutation[2] = 2'd1;
+    permutation[2] = 2'd0;
     
   end
 
   5'd3:
   begin
     
-    permutation[0] = 2'd0;
+    permutation[0] = 2'd3;
     
-    permutation[1] = 2'd2;
+    permutation[1] = 2'd1;
     
-    permutation[2] = 2'd3;
+    permutation[2] = 2'd2;
     
   end
 
   5'd4:
   begin
     
-    permutation[0] = 2'd0;
+    permutation[0] = 2'd3;
     
-    permutation[1] = 2'd3;
+    permutation[1] = 2'd2;
     
-    permutation[2] = 2'd1;
+    permutation[2] = 2'd0;
     
   end
 
   5'd5:
   begin
     
-    permutation[0] = 2'd0;
+    permutation[0] = 2'd3;
     
-    permutation[1] = 2'd3;
+    permutation[1] = 2'd2;
     
-    permutation[2] = 2'd2;
+    permutation[2] = 2'd1;
     
   end
 
@@ -148,72 +148,6 @@ case(selection)
   5'd12:
   begin
     
-    permutation[0] = 2'd3;
-    
-    permutation[1] = 2'd0;
-    
-    permutation[2] = 2'd1;
-    
-  end
-
-  5'd13:
-  begin
-    
-    permutation[0] = 2'd3;
-    
-    permutation[1] = 2'd0;
-    
-    permutation[2] = 2'd2;
-    
-  end
-
-  5'd14:
-  begin
-    
-    permutation[0] = 2'd3;
-    
-    permutation[1] = 2'd1;
-    
-    permutation[2] = 2'd0;
-    
-  end
-
-  5'd15:
-  begin
-    
-    permutation[0] = 2'd3;
-    
-    permutation[1] = 2'd1;
-    
-    permutation[2] = 2'd2;
-    
-  end
-
-  5'd16:
-  begin
-    
-    permutation[0] = 2'd3;
-    
-    permutation[1] = 2'd2;
-    
-    permutation[2] = 2'd0;
-    
-  end
-
-  5'd17:
-  begin
-    
-    permutation[0] = 2'd3;
-    
-    permutation[1] = 2'd2;
-    
-    permutation[2] = 2'd1;
-    
-  end
-
-  5'd18:
-  begin
-    
     permutation[0] = 2'd1;
     
     permutation[1] = 2'd0;
@@ -222,7 +156,7 @@ case(selection)
     
   end
 
-  5'd19:
+  5'd13:
   begin
     
     permutation[0] = 2'd1;
@@ -233,7 +167,7 @@ case(selection)
     
   end
 
-  5'd20:
+  5'd14:
   begin
     
     permutation[0] = 2'd1;
@@ -244,10 +178,76 @@ case(selection)
     
   end
 
-  5'd21:
+  5'd15:
   begin
     
     permutation[0] = 2'd1;
+    
+    permutation[1] = 2'd2;
+    
+    permutation[2] = 2'd3;
+    
+  end
+
+  5'd16:
+  begin
+    
+    permutation[0] = 2'd1;
+    
+    permutation[1] = 2'd3;
+    
+    permutation[2] = 2'd0;
+    
+  end
+
+  5'd17:
+  begin
+    
+    permutation[0] = 2'd1;
+    
+    permutation[1] = 2'd3;
+    
+    permutation[2] = 2'd2;
+    
+  end
+
+  5'd18:
+  begin
+    
+    permutation[0] = 2'd0;
+    
+    permutation[1] = 2'd1;
+    
+    permutation[2] = 2'd2;
+    
+  end
+
+  5'd19:
+  begin
+    
+    permutation[0] = 2'd0;
+    
+    permutation[1] = 2'd1;
+    
+    permutation[2] = 2'd3;
+    
+  end
+
+  5'd20:
+  begin
+    
+    permutation[0] = 2'd0;
+    
+    permutation[1] = 2'd2;
+    
+    permutation[2] = 2'd1;
+    
+  end
+
+  5'd21:
+  begin
+    
+    permutation[0] = 2'd0;
     
     permutation[1] = 2'd2;
     
@@ -258,18 +258,18 @@ case(selection)
   5'd22:
   begin
     
-    permutation[0] = 2'd1;
+    permutation[0] = 2'd0;
     
     permutation[1] = 2'd3;
     
-    permutation[2] = 2'd0;
+    permutation[2] = 2'd1;
     
   end
 
   5'd23:
   begin
     
-    permutation[0] = 2'd1;
+    permutation[0] = 2'd0;
     
     permutation[1] = 2'd3;
     
@@ -280,11 +280,11 @@ case(selection)
   default:
   begin
     
-    permutation[0] = 2'd0;
+    permutation[0] = 2'd3;
     
-    permutation[1] = 2'd1;
+    permutation[1] = 2'd0;
     
-    permutation[2] = 2'd2;
+    permutation[2] = 2'd1;
     
   end
 endcase
