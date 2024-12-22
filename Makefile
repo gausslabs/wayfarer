@@ -11,7 +11,7 @@ clean-bazel:
 sw-model-test: model-test clean-bazel
 
 clean-run:
-	rm -r *.pb *.log *.jou *.wdb *.vcd xsim.dir/
+	rm -r *.log *.jou *.pb *.wdb *.vcd xsim.dir/
 
 clean: clean-run clean-bazel
 
