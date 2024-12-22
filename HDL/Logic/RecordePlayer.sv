@@ -216,13 +216,13 @@ begin
   out.last = last;
   out.valid = (playerState == PLAY);
   if ((playerState == PLAY) & out.ready ) 
-    out.data <= store[writePointer];
+    out.data <= store[readPointer];
 end
 else
 begin
   out.data <= 0;
   out.last <= 0;
-  out.keep <= 0;
+  out.valid <= 0;
 end
 end
 
