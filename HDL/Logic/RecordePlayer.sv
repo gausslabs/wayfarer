@@ -19,6 +19,11 @@ logic [WIRE_WIDTH - 1:0] store [STORE_WIDTH - 1:0];
 logic [STORE_WIDTH - 1:0] writePointer;
 logic [STORE_WIDTH - 1:0] valuesStored;
 logic [STORE_WIDTH - 1:0] readPointer;
+logic full;
+
+///////////////////////////////////////////////////////////////////////
+// Recorder Section
+///////////////////////////////////////////////////////////////////////
 
 ///////////////////////////////////////////////////////////////////////
 // Recording FSM
@@ -39,24 +44,24 @@ begin
 end
 else
 begin
-  recorderState <= WAIT;
+  recorderState <= WAITING;
 end
 end
 
 always_comb
 begin
   case (recorderState)
-    WAIT:
+    WAITING:
       begin
         if(record)
           recorderNextState = RECORD;
         else
-          recorderNextState = WAIT;
+          recorderNextState = WAITING;
       end
     RECORD:
       begin
         if(~record)
-          recorderNextState = WAIT;
+          recorderNextState = WAITING;
         else
         begin
           if (in.valid & in.last)
@@ -68,19 +73,19 @@ begin
     LAST_SAMPLE_RECORDED:
     begin
       if(~record)
-        recorderNextState = WAIT;
+        recorderNextState = WAITING;
       else
         recorderNextState = LAST_SAMPLE_RECORDED;
     end
     default: begin
-      recorderNextState = WAIT;
+      recorderNextState = WAITING;
     end
   endcase
 end
 
 
 ///////////////////////////////////////////////////////////////////////
-// Recording FSM based control
+// Recording control
 ///////////////////////////////////////////////////////////////////////
 
 SaturatingCounter #(
@@ -89,24 +94,27 @@ SaturatingCounter #(
   .clk    (clk    ),
   .resetn (resetn & (recorderState == RECORD)),
   .run    (in.valid    ),
-  .limitReached(in.ready),
+  .limitReached(full),
   .count  (writePointer)
 );
 
-// delayed full is required 
-logic delayedFull;
+// essentially tells the block sending this data that
+// it is ready to take data only when its not full and
+// the a single last has not arrived on the input stream.
+assign in.ready = (~full) & (recorderState == RECORD);
+
 always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
-  delayedFull <= full;
-  if ((recorderState == RECORD) & in.valid & (delayedFull)) 
+  if ((recorderState == RECORD) & in.valid & (full)) 
     store[writePointer] <= in.data;
 end
 else
 begin
-  store <= 0;
-  delayedFull <= 0;
+  for (int i=0; i<(1 << STORE_WIDTH); ++i) begin
+    store[i] <= 0;
+  end
 end
 end
 
@@ -123,7 +131,100 @@ begin
 end
 end
 
+///////////////////////////////////////////////////////////////////////
+// Player Section
+///////////////////////////////////////////////////////////////////////
 
+///////////////////////////////////////////////////////////////////////
+// player FSM
+///////////////////////////////////////////////////////////////////////
+typedef enum bit { 
+  WAIT,
+  PLAY,
+  LAST_SAMPLE_SENT
+} PlayerFSM;
+
+PlayerFSM playerState, playerNextState;
+
+always_ff @ (posedge clk)
+begin
+if(resetn)
+begin
+  playerState <= playerNextState;
+end
+else
+begin
+  playerState <= WAIT;
+end
+end
+
+always_comb
+begin
+case (playerState)
+  WAIT:
+  begin
+    if (play)
+      playerNextState = PLAY;
+    else
+      playerNextState = WAIT;
+  end
+  PLAY:
+  begin
+    if (play)
+    begin
+      if (out.ready & out.valid & out.last)
+        playerNextState = LAST_SAMPLE_SENT;
+      else 
+        playerNextState = PLAY;
+    end
+    else
+      playerNextState = WAIT;
+  end
+  LAST_SAMPLE_SENT:
+  begin
+    if (play)
+      playerNextState = LAST_SAMPLE_SENT;
+    else
+      playerNextState = WAIT;
+  end
+  default: begin
+    playerNextState = WAIT;
+  end
+endcase
+end
+
+///////////////////////////////////////////////////////////////////////
+// player control
+///////////////////////////////////////////////////////////////////////
+
+logic last;
+ControlledCounter #(
+  .COUNTER_WIDTH(STORE_WIDTH)
+) playCounter (
+  .clk    (clk    ),
+  .resetn (resetn & (playerState == PLAY)),
+  .run    (out.ready    ),
+  .limitReached(last),
+  .limit   (valuesStored),
+  .count  (readPointer)
+);
+
+always_ff @ (posedge clk)
+begin
+if(resetn)
+begin
+  out.last = last;
+  out.valid = (playerState == PLAY);
+  if ((playerState == PLAY) & out.ready ) 
+    out.data <= store[writePointer];
+end
+else
+begin
+  out.data <= 0;
+  out.last <= 0;
+  out.keep <= 0;
+end
+end
 
 endmodule
 
@@ -174,7 +275,7 @@ always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
-  if (run & (counter < (limit)))
+  if (run & (counter <= (limit)))
     counter <= counter + 1;
 end
 else
@@ -183,7 +284,7 @@ begin
 end
 end
 
-assign limitReached = ((counter + 1) == (limit));
+assign limitReached = ((counter) == (limit));
 assign count = counter[COUNTER_WIDTH - 1:0];
 
 
