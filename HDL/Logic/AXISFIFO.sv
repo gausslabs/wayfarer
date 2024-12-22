@@ -39,7 +39,7 @@ begin
 if(resetn)
 begin
   if (in.valid & (~full)) 
-    store[writePointer] <= in.data;
+    store[writePointer[STORE_WIDTH - 1:0]] <= in.data;
 end
 else
 begin
@@ -71,7 +71,7 @@ if(resetn)
 begin
   out.valid = (~empty);
   if (out.ready) 
-    out.data <= store[readPointer];
+    out.data <= store[readPointer[STORE_WIDTH - 1:0]];
 end
 else
 begin
