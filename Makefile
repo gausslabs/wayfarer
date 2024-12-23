@@ -15,6 +15,9 @@ clean-run:
 
 clean: clean-run clean-bazel
 
+run-test:
+	vivado -mode batch -source HDL/Tests/${TEST_NAME}/Sim.tcl
+
 test-setup:
 	mkdir HDL/Tests/${TEST_NAME}
 	touch HDL/Tests/${TEST_NAME}/${TEST_NAME}_TB.sv

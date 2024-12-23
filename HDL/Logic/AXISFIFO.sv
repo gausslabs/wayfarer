@@ -1,7 +1,10 @@
 `ifndef AXIS_FIFO
  `define AXIS_FIFO
 
-module AXISFIFO (
+module AXISFIFO #(
+  parameter DATA_WIDTH = 16,
+  parameter STORE_SIZE = 8
+)(
   input wire clk,
   input wire resetn,
   AXI4S.Master out,
@@ -10,7 +13,8 @@ module AXISFIFO (
 ///////////////////////////////////////////////////////////////////////
 // Store and Variable for book keeping
 ///////////////////////////////////////////////////////////////////////
-logic [WIRE_WIDTH - 1:0] store [STORE_WIDTH - 1:0];
+logic [DATA_WIDTH - 1:0] store [STORE_SIZE - 1:0];
+localparam STORE_WIDTH = $clog2(STORE_SIZE);
 logic [STORE_WIDTH:0] writePointer;
 logic [STORE_WIDTH:0] readPointer;
 logic full, empty;
@@ -18,6 +22,7 @@ logic full, empty;
 assign full = (writePointer[STORE_WIDTH] ^ readPointer[STORE_WIDTH]) & (writePointer[STORE_WIDTH - 1:0] == readPointer[STORE_WIDTH - 1:0]);
 assign empty = (writePointer[STORE_WIDTH] == readPointer[STORE_WIDTH]) & (writePointer[STORE_WIDTH - 1:0] == readPointer[STORE_WIDTH - 1:0]);
 
+assign in.ready = ~full;
 ///////////////////////////////////////////////////////////////////////
 // Writing
 ///////////////////////////////////////////////////////////////////////
@@ -26,7 +31,8 @@ always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
-  writePointer <= writePointer + in.valid;
+  if(~full)
+    writePointer <= writePointer + in.valid;
 end
 else
 begin
@@ -57,7 +63,8 @@ always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
-  readPointer <= readPointer + out.ready;
+  if(~empty)
+    readPointer <= readPointer + out.ready;
 end
 else
 begin
