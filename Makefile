@@ -15,5 +15,11 @@ clean-run:
 
 clean: clean-run clean-bazel
 
+test-setup:
+	mkdir HDL/Tests/${TEST_NAME}
+	touch HDL/Tests/${TEST_NAME}/${TEST_NAME}_TB.sv
+	touch HDL/Tests/${TEST_NAME}/${TEST_NAME}Wrapper.sv
+	touch HDL/Tests/${TEST_NAME}/Sim.tcl
+
 lfsr-emit:
 	bazel run //Models/lfsr:lfsr_model -- /tmp/input.hex 63
