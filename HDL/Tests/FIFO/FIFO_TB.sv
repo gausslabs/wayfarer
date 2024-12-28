@@ -78,7 +78,7 @@ begin
 
   #10 resetn = 1;
 
-  #1000;
+  #2000;
   $display("Test Passed!!");
   $finish();
 end
