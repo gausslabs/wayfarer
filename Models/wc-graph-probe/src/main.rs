@@ -35,7 +35,7 @@ impl <'a> CircuitGateList <'a> {
         for upper_gate in self.gates.iter(){
             let mut connections = Vec::new();
             for lower_gate in self.gates.iter(){
-                match upper_gate == lower_gate {
+                match *upper_gate == *lower_gate {
                     true => connections.push(1),
                     false => connections.push(0),
                 };
@@ -45,6 +45,28 @@ impl <'a> CircuitGateList <'a> {
 
         connectins_list
     }
+
+    pub fn weakly_connected_check(&self) -> bool{
+        let connection_array = self.connection_array();
+        let columns= connection_array[0].len();
+        let rows = connection_array.len();
+        let  mut row_collapsed_array = Vec::new();
+        for i in 0..rows {
+            let mut sum = 0;
+            for j in 0..columns{
+                sum += connection_array[j][i];
+            }
+            row_collapsed_array.push(sum);
+        }
+        println!("The row_collapsed_array array {:?}", row_collapsed_array);
+
+        row_collapsed_array.retain(|&x|{
+            x >= 2
+        });
+        println!("The row row_collapsed_array filters {:?}", row_collapsed_array);
+
+        return row_collapsed_array.len() == columns
+    } 
 }
 
 
@@ -60,5 +82,19 @@ fn main() {
     gate_list.add(&perm_3);
     println!("The list is {:?}",gate_list);
     println!("The connections {:?}",gate_list.connection_array());
-    println!("are 1 == 2 {:?}",gate_list.gates[0] == gate_list.gates[1])
+    println!("The graph is weak connected ? {:}",gate_list.weakly_connected_check());
+    
+    let perm_1:[u8;3] = [ 1, 2, 3];
+    let perm_2:[u8;3] = [ 6, 0, 7];
+    let perm_3:[u8;3] = [ 4, 2, 5];
+    let mut gate_list = CircuitGateList{
+        gates: Vec::new()
+    };
+    gate_list.add(&perm_1);
+    gate_list.add(&perm_2);
+    gate_list.add(&perm_3);
+    println!("The list is {:?}",gate_list);
+    println!("The connections {:?}",gate_list.connection_array());
+    println!("The graph is weak connected ? {:}",gate_list.weakly_connected_check());
+
 }
