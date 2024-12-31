@@ -4,6 +4,7 @@
 module LFSR (
   input wire clk,
   input wire resetn,
+  input wire next,
   input wire [7:0] seed,
   output logic [7:0] random_number
 );
@@ -15,7 +16,8 @@ always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
-  random_number <= {random_number[6:0],(random_number[7] ^ random_number[5] ^ random_number[4] ^ random_number[3])};
+  if(next)
+    random_number <= {random_number[6:0],(random_number[7] ^ random_number[5] ^ random_number[4] ^ random_number[3])};
 end
 else
 begin

@@ -1,6 +1,18 @@
 `ifndef WIRE_PERMUTATION_SV
  `define WIRE_PERMUTATION_SV
 
+`include "AXIS.sv"
+
+package Wires;
+
+typedef struct packed {
+  logic a;
+  logic b;
+  logic c;
+} wires;
+
+endpackage
+
 module InputWireSelection #(
   parameter NUMBER_OF_INPUT_WIRES = 4,
   parameter CHOICE_WIDTH          = $clog2(NUMBER_OF_INPUT_WIRES)

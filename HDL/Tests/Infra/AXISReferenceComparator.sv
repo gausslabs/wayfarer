@@ -1,6 +1,8 @@
 `ifndef AXIS_REFERENCE_COMPORATOR_SV
  `define AXIS_REFERENCE_COMPORATOR_SV
 
+`include "AXIS.sv"
+
 module AXISReferenceComparator #(
   parameter DATA_WIDTH = 32,
   parameter ADDR_WIDTH = 10,

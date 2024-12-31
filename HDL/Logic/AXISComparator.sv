@@ -5,15 +5,15 @@
 module AXISComparator (
   input wire clk,
   input wire resetn,
-  AXI4S.Master in1,
-  AXI4S.Master in2,
+  AXI4S.Slave in1,
+  AXI4S.Slave in2,
   output logic equal
 );
 ///////////////////////////////////////////////////////////////////////
 // comparing the data
 ///////////////////////////////////////////////////////////////////////
-assign in1.ready = 1;
-assign in2.ready = 1;
+assign in1.ready = in2.valid;
+assign in2.ready = in1.valid;
 
 logic _equal;
 always_ff @ (posedge clk)
@@ -26,6 +26,7 @@ begin
         _equal <= _equal & 1;
     else
         _equal <= _equal & 0;
+    $display("[First Input](%d) == (%d)[Second Input], equal %b", in1.data, in2.data, (in1.data == in2.data));
   end
 end
 else
@@ -33,6 +34,8 @@ begin
   _equal <= 1;
 end
 end
+
+assign equal = _equal;
 
 endmodule
 
