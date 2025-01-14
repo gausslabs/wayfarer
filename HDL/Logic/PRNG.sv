@@ -40,40 +40,40 @@ typedef enum bit[1:0] {
     GENRATE
  } FSM;
 
-FSM currentState, nextState;
+FSM current_state, next_state;
 
 always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
-  currentState <= nextState;
+  current_state <= next_state;
 end
 else
 begin
-  currentState <= WAIT;
+  current_state <= WAIT;
 end
 end
 logic clash;
 always_comb
 begin
-  case (currentState)
+  case (current_state)
     WAIT:
         begin
           if (next) 
-            nextState = SEND;
+            next_state = SEND;
           else
-            nextState = WAIT;
+            next_state = WAIT;
         end
     SEND:
       begin
-        nextState = GENRATE;
+        next_state = GENRATE;
       end
     GENRATE:
       begin
-        nextState = WAIT;
+        next_state = WAIT;
       end
     default:
-      nextState = WAIT;
+      next_state = WAIT;
   endcase
 end
 
@@ -82,12 +82,12 @@ end
 ///////////////////////////////////////////////////////////////////////
 
 assign clash = (randomNumber == exclude);
-assign valid = (currentState == SEND) & (~clash);
+assign valid = (current_state == SEND) & (~clash);
 
 LFSR lfsr (
   .clk           (clk   ),
   .resetn        (resetn),
-  .next          (next & (currentState == GENRATE) ),
+  .next          (next & (current_state == GENRATE) ),
   .seed         (seed),
   .random_number(randomNumber)
 );

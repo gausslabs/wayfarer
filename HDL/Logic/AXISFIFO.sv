@@ -15,12 +15,12 @@ module AXISFIFO #(
 ///////////////////////////////////////////////////////////////////////
 logic [DATA_WIDTH - 1:0] store [STORE_SIZE - 1:0];
 localparam STORE_WIDTH = $clog2(STORE_SIZE);
-logic [STORE_WIDTH:0] writePointer;
-logic [STORE_WIDTH:0] readPointer;
+logic [STORE_WIDTH:0] write_pointer;
+logic [STORE_WIDTH:0] read_pointer;
 logic full, empty;
 
-assign full = (writePointer[STORE_WIDTH] ^ readPointer[STORE_WIDTH]) & (writePointer[STORE_WIDTH - 1:0] == readPointer[STORE_WIDTH - 1:0]);
-assign empty = (writePointer[STORE_WIDTH] == readPointer[STORE_WIDTH]) & (writePointer[STORE_WIDTH - 1:0] == readPointer[STORE_WIDTH - 1:0]);
+assign full = (write_pointer[STORE_WIDTH] ^ read_pointer[STORE_WIDTH]) & (write_pointer[STORE_WIDTH - 1:0] == read_pointer[STORE_WIDTH - 1:0]);
+assign empty = (write_pointer[STORE_WIDTH] == read_pointer[STORE_WIDTH]) & (write_pointer[STORE_WIDTH - 1:0] == read_pointer[STORE_WIDTH - 1:0]);
 
 assign in.ready = ~full;
 ///////////////////////////////////////////////////////////////////////
@@ -32,11 +32,11 @@ begin
 if(resetn)
 begin
   if(~full)
-    writePointer <= writePointer + in.valid;
+    write_pointer <= write_pointer + in.valid;
 end
 else
 begin
-  writePointer <= 0;
+  write_pointer <= 0;
 end
 end
 
@@ -45,7 +45,7 @@ begin
 if(resetn)
 begin
   if (in.valid & (~full)) 
-    store[writePointer[STORE_WIDTH - 1:0]] <= in.data;
+    store[write_pointer[STORE_WIDTH - 1:0]] <= in.data;
 end
 else
 begin
@@ -64,11 +64,11 @@ begin
 if(resetn)
 begin
   if(~empty)
-    readPointer <= readPointer + out.ready;
+    read_pointer <= read_pointer + out.ready;
 end
 else
 begin
-  readPointer <= 0;
+  read_pointer <= 0;
 end
 end
 
@@ -78,7 +78,7 @@ if(resetn)
 begin
   out.valid = (~empty);
   if (out.ready) 
-    out.data <= store[readPointer[STORE_WIDTH - 1:0]];
+    out.data <= store[read_pointer[STORE_WIDTH - 1:0]];
 end
 else
 begin
