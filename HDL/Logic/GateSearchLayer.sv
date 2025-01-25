@@ -4,39 +4,159 @@
 module GateSearchLayer (
   input wire clk,
   input wire resetn,
+  input wire next,
   AXI4S.Master out,
   AXI4S.Slave in 
 );
 
+//////////////////////////////////////////////////////////////////
+// internal values
+//////////////////////////////////////////////////////////////////
+parameter LFSR_SIZE   = 8;
+parameter NUMBER_OF_INPUT_WIRES = 5;
+logic [NUMBER_OF_INPUT_WIRES - 1:0] intermediate_wire_values;
+logic [1:0] valid_in, shift;
+logic valid_enable, ready_enable, a, b, c, valid, ready, interim_valid;
+
+//////////////////////////////////////////////////////////////////
+// contol signal management
+//////////////////////////////////////////////////////////////////
+assign ready = ready_enable & out.ready;
+assign valid = ready_enable & in.valid;
+
+assign in.ready = ready;
+
+//////////////////////////////////////////////////////////////////
+// data flow
+//////////////////////////////////////////////////////////////////
+
+InputWireSelection #(
+  .NUMBER_OF_INPUT_WIRES(NUMBER_OF_INPUT_WIRES)
+) input_wire_selection (
+  .clk(clk),
+  .validIn(valid),
+  .validOut(interim_valid),
+  .resetn(resetn),
+  .inputs(in.data),
+  .ready(ready),
+  .outputs(intermediate_wire_values),
+  input wire [CHOICE_WIDTH - 1: 0] a_select,
+  input wire [CHOICE_WIDTH - 1: 0] b_select,
+  input wire [CHOICE_WIDTH - 1: 0] c_select,
+  .a(a),
+  .b(b)
+);
+
+Toffoli gate_action (
+  input wire [3:0] gateChoice,
+  .a(a),
+  .b(b),
+  .c(c)
+);
+
+OutputWireSelection  #(
+  .NUMBER_OF_INPUT_WIRES(NUMBER_OF_INPUT_WIRES)
+) output_wire_selection (
+  .clk(clk),
+  .validIn(interim_valid),
+  .validOut(out.valid),
+  .resetn(resetn),
+  .ready(ready),
+  .inputs(intermediate_wire_values),
+  .outputs(out.data),
+  input wire [CHOICE_WIDTH - 1: 0] a_select,
+  input wire [CHOICE_WIDTH - 1: 0] b_select,
+  input wire [CHOICE_WIDTH - 1: 0] c_select,
+  .a(a),
+  .b(b),
+  .c(c)
+);
+
+//////////////////////////////////////////////////////////////////
+// controller
+//////////////////////////////////////////////////////////////////
+
+GateSearchController  controller (
+  .clk(clk),
+  .resetn(resetn),
+  .next(next),
+  .validIn(valid_in),
+  .validEnable(valid_enable),
+  .readyEnable(ready_enable),
+  .shift(shift)
+);
 
 endmodule
 
-module SafePRNG (
-  input wire clk,
-  input wire resetn,
-  input wire next,
-  output logic [CHOICE_WIDTH - 1: 0] a_select,
-  output logic [CHOICE_WIDTH - 1: 0] b_select,
-  output logic [CHOICE_WIDTH - 1: 0] c_select,
-  output wire valid
-);
-
-SafePermutationGenerator sheild (
-  input wire [PERM_SIZE - 1:0] selection,
-  output logic [PORT_SIZE- 1:0] [2:0] permutation
-);
-
-PRNG #(
-    parameter OUTPUT_SIZE = 4,
-    parameter LFSR_SIZE   = 8
+module CircuitPRNG #(
+  parameter LFSR_SIZE   = 8
 ) (
   input wire clk,
   input wire resetn,
   input wire next,
+  input wire [3:0] excludeValue,
   input wire [LFSR_SIZE - 1:0] seed,
-  input wire [OUTPUT_SIZE - 1:0] excludeValue,
-  output wire valid,
-  output logic [OUTPUT_SIZE - 1:0] randomNumber
+  output logic [3: 0] gateChoice,
+  output wire valid
+);
+
+//////////////////////////////////////////////////////////////////
+// random number generator
+//////////////////////////////////////////////////////////////////
+PRNG #(
+  .OUTPUT_SIZE(4),
+  .LFSR_SIZE(LFSR_SIZE)
+) prng (
+  .clk(clk),
+  .resetn(resetn),
+  .next(next),
+  .seed(seed),
+  .excludeValue(excludeValue),
+  .valid(valid),
+  .randomNumber(gateChoice)
+);
+
+endmodule
+
+module WirePRNG #(
+  parameter PERM_SIZE   = 5,
+  parameter CHOICE_WIDTH  = $clog2(PERM_SIZE)
+  parameter LFSR_SIZE   = 8
+) (
+  input wire clk,
+  input wire resetn,
+  input wire next,
+  input wire [PERM_SIZE - 1:0] excludeValue,
+  input wire [LFSR_SIZE - 1:0] seed,
+  output logic [CHOICE_WIDTH - 1: 0] aSelect,
+  output logic [CHOICE_WIDTH - 1: 0] bSelect,
+  output logic [CHOICE_WIDTH - 1: 0] cSelect,
+  output wire valid
+);
+
+//////////////////////////////////////////////////////////////////
+// safe permutation sheild
+//////////////////////////////////////////////////////////////////
+logic random_number;
+SafePermutationGenerator sheild (
+  .selection(random_number),
+  .permutation({aSelect,bSelect,cSelect})
+);
+
+//////////////////////////////////////////////////////////////////
+// random number generator
+//////////////////////////////////////////////////////////////////
+PRNG #(
+  .OUTPUT_SIZE(PERM_SIZE),
+  .LFSR_SIZE(LFSR_SIZE)
+) prng (
+  .clk(clk),
+  .resetn(resetn),
+  .next(next),
+  .seed(seed),
+  .excludeValue(excludeValue),
+  .valid(valid),
+  .randomNumber(random_number)
 );
 endmodule
 

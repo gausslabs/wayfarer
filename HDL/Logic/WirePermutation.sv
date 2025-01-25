@@ -19,14 +19,16 @@ module InputWireSelection #(
 ) (
   input wire clk,
   input wire resetn,
+  input wire validIn,
+  output logic validOut,
+  input wire ready,
   input wire [NUMBER_OF_INPUT_WIRES - 1: 0] inputs,
   output logic [NUMBER_OF_INPUT_WIRES - 1: 0] outputs,
   input wire [CHOICE_WIDTH - 1: 0] a_select,
   input wire [CHOICE_WIDTH - 1: 0] b_select,
   input wire [CHOICE_WIDTH - 1: 0] c_select,
   output logic a,
-  output logic b,
-  output logic c
+  output logic b
 );
 ///////////////////////////////////////////////////////////////////////
 // Registered input selection
@@ -36,18 +38,21 @@ always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
-  a <= inputs[a_select];  
-  b <= inputs[b_select];
-  c <= inputs[c_select];
-  // simple registerd pass through for inputs
-  outputs <= inputs;
+  validOut <= validIn;
+  if (ready)
+  begin
+    a <= inputs[a_select];  
+    b <= inputs[b_select];
+    // simple registerd pass through for inputs
+    outputs <= inputs;
+  end
 end
 else
 begin
   a <= 0;  
   b <= 0;
-  c <= 0;
   outputs <= 0;
+  validOut <= 0;
 end
 end
 
@@ -59,6 +64,9 @@ module OutputWireSelection #(
 ) (
   input wire clk,
   input wire resetn,
+  input wire validIn,
+  output logic validOut,
+  input wire ready,
   input wire [NUMBER_OF_INPUT_WIRES - 1: 0] inputs,
   output logic [NUMBER_OF_INPUT_WIRES - 1: 0] outputs,
   input wire [CHOICE_WIDTH - 1: 0] a_select,
@@ -90,11 +98,14 @@ always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
-  outputs <= selected_outputs;
+  validOut <= validIn;
+  if(ready)
+    outputs <= selected_outputs;
 end
 else
 begin
   outputs <= 0;
+  validOut <= 0;
 end
 end
 
