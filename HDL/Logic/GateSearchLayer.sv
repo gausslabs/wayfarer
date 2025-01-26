@@ -1,6 +1,77 @@
 `ifndef GATE_SEARCH_LAYER
  `define GATE_SEARCH_LAYER
 
+module Gate #(
+  parameter NUMBER_OF_INPUT_WIRES = 5,
+  parameter CHOICE_WIDTH          = $clog2(NUMBER_OF_INPUT_WIRES)
+)(
+  input wire clk,
+  input wire resetn,
+  input wire ready,
+  input wire validIn,
+  output logic validOut,
+  input wire passThrough,
+  input wire [3:0] gateChoice,
+  input wire [CHOICE_WIDTH - 1: 0] aSelect,
+  input wire [CHOICE_WIDTH - 1: 0] bSelect,
+  input wire [CHOICE_WIDTH - 1: 0] cSelect,
+  input wire [NUMBER_OF_INPUT_WIRES - 1:0] inputWires,
+  output logic [NUMBER_OF_INPUT_WIRES - 1:0] outputWires
+);
+//////////////////////////////////////////////////////////////////
+// internal values
+//////////////////////////////////////////////////////////////////
+logic [NUMBER_OF_INPUT_WIRES - 1:0] intermediate_wire_values;
+logic a, b, c, interim_valid;
+
+//////////////////////////////////////////////////////////////////
+// data flow
+//////////////////////////////////////////////////////////////////
+InputWireSelection #(
+  .NUMBER_OF_INPUT_WIRES(NUMBER_OF_INPUT_WIRES)
+) input_wire_selection (
+  .clk(clk),
+  .validIn(validIn),
+  .validOut(interim_valid),
+  .resetn(resetn),
+  .inputs(inputWires),
+  .ready(ready),
+  .outputs(intermediate_wire_values),
+  .aSelect(aSelect),
+  .bSelect(bSelect),
+  .a(a),
+  .b(b)
+);
+
+Toffoli gate_action (
+  .gateChoice(gateChoice),
+  .a(a),
+  .b(b),
+  .c(c)
+);
+
+OutputWireSelection  #(
+  .NUMBER_OF_INPUT_WIRES(NUMBER_OF_INPUT_WIRES)
+) output_wire_selection (
+  .clk(clk),
+  .validIn(interim_valid),
+  .validOut(validOut),
+  .resetn(resetn),
+  .ready(ready),
+  .inputs(intermediate_wire_values),
+  .outputs(outputWires),
+  .aSelect(aSelect),
+  .bSelect(bSelect),
+  .cSelect(cSelect),
+  .passThrough(passThrough),
+  .a(a),
+  .b(b),
+  .c(c)
+);
+
+
+endmodule
+
 module GateSearchLayer (
   input wire clk,
   input wire resetn,
@@ -30,47 +101,7 @@ assign in.ready = ready;
 // data flow
 //////////////////////////////////////////////////////////////////
 
-InputWireSelection #(
-  .NUMBER_OF_INPUT_WIRES(NUMBER_OF_INPUT_WIRES)
-) input_wire_selection (
-  .clk(clk),
-  .validIn(valid),
-  .validOut(interim_valid),
-  .resetn(resetn),
-  .inputs(in.data),
-  .ready(ready),
-  .outputs(intermediate_wire_values),
-  input wire [CHOICE_WIDTH - 1: 0] a_select,
-  input wire [CHOICE_WIDTH - 1: 0] b_select,
-  input wire [CHOICE_WIDTH - 1: 0] c_select,
-  .a(a),
-  .b(b)
-);
 
-Toffoli gate_action (
-  input wire [3:0] gateChoice,
-  .a(a),
-  .b(b),
-  .c(c)
-);
-
-OutputWireSelection  #(
-  .NUMBER_OF_INPUT_WIRES(NUMBER_OF_INPUT_WIRES)
-) output_wire_selection (
-  .clk(clk),
-  .validIn(interim_valid),
-  .validOut(out.valid),
-  .resetn(resetn),
-  .ready(ready),
-  .inputs(intermediate_wire_values),
-  .outputs(out.data),
-  input wire [CHOICE_WIDTH - 1: 0] a_select,
-  input wire [CHOICE_WIDTH - 1: 0] b_select,
-  input wire [CHOICE_WIDTH - 1: 0] c_select,
-  .a(a),
-  .b(b),
-  .c(c)
-);
 
 //////////////////////////////////////////////////////////////////
 // controller
@@ -120,7 +151,7 @@ endmodule
 
 module WirePRNG #(
   parameter PERM_SIZE   = 5,
-  parameter CHOICE_WIDTH  = $clog2(PERM_SIZE)
+  parameter CHOICE_WIDTH  = $clog2(PERM_SIZE),
   parameter LFSR_SIZE   = 8
 ) (
   input wire clk,

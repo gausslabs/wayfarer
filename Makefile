@@ -1,5 +1,6 @@
 lint:
-	vivado -mode batch -source Scripts/Lint.tcl
+	bazel build lint_rtl
+	vivado -mode batch -source bazel-bin/Lint.tcl
 	rm *.jou *.log
 
 model-test:

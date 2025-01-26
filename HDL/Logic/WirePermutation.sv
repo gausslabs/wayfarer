@@ -24,9 +24,8 @@ module InputWireSelection #(
   input wire ready,
   input wire [NUMBER_OF_INPUT_WIRES - 1: 0] inputs,
   output logic [NUMBER_OF_INPUT_WIRES - 1: 0] outputs,
-  input wire [CHOICE_WIDTH - 1: 0] a_select,
-  input wire [CHOICE_WIDTH - 1: 0] b_select,
-  input wire [CHOICE_WIDTH - 1: 0] c_select,
+  input wire [CHOICE_WIDTH - 1: 0] aSelect,
+  input wire [CHOICE_WIDTH - 1: 0] bSelect,
   output logic a,
   output logic b
 );
@@ -41,8 +40,8 @@ begin
   validOut <= validIn;
   if (ready)
   begin
-    a <= inputs[a_select];  
-    b <= inputs[b_select];
+    a <= inputs[aSelect];  
+    b <= inputs[bSelect];
     // simple registerd pass through for inputs
     outputs <= inputs;
   end
@@ -69,9 +68,10 @@ module OutputWireSelection #(
   input wire ready,
   input wire [NUMBER_OF_INPUT_WIRES - 1: 0] inputs,
   output logic [NUMBER_OF_INPUT_WIRES - 1: 0] outputs,
-  input wire [CHOICE_WIDTH - 1: 0] a_select,
-  input wire [CHOICE_WIDTH - 1: 0] b_select,
-  input wire [CHOICE_WIDTH - 1: 0] c_select,
+  input wire [CHOICE_WIDTH - 1: 0] aSelect,
+  input wire [CHOICE_WIDTH - 1: 0] bSelect,
+  input wire [CHOICE_WIDTH - 1: 0] cSelect,
+  input wire passThrough,
   input wire a,
   input wire b,
   input wire c
@@ -86,7 +86,7 @@ genvar i;
 generate;
   for(i = 0; i < NUMBER_OF_INPUT_WIRES; i++)
   begin
-    assign selected_outputs[i] = (a_select == i)? a :( (b_select == i) ? b :( (c_select == i) ? c : (inputs[i]) ));
+    assign selected_outputs[i] = (aSelect == i)? a :( (bSelect == i) ? b :( (cSelect == i) ? c : (inputs[i]) ));
   end
 endgenerate
 
@@ -100,7 +100,7 @@ if(resetn)
 begin
   validOut <= validIn;
   if(ready)
-    outputs <= selected_outputs;
+    outputs <= passThrough ? selected_outputs : inputs;
 end
 else
 begin

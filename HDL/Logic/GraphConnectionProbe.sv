@@ -24,41 +24,41 @@ module TreeAdder #(
     parameter INPUT_WIDTH = 1
 )(
   input wire [INPUT_WIDTH - 1: 0] inputs [NUMBER_OF_INPUTS - 1:0],
-  output logic [(NUMBER_OF_INPUTS + INPUT_WIDTH) - 1:0] output
+  output logic [(NUMBER_OF_INPUTS + INPUT_WIDTH) - 1:0] outputSum
 );
 
 if (NUMBER_OF_INPUTS == 1)
 begin
-    assign output = input[0];
+    assign outputSum = inputs[0];
 end
 else if (NUMBER_OF_INPUTS == 2)
 begin
-    assign output = input[0] + input[1];
+    assign outputSum = inputs[0] + inputs[1];
 end
 else
 begin
 localparam EVEN_NUMBER_OF_INPUTS = NUMBER_OF_INPUTS/2;
 localparam ODD_NUMBER_OF_INPUTS = NUMBER_OF_INPUTS - EVEN_NUMBER_OF_INPUTS;
 
-logic [(EVEN_NUMBER_OF_INPUTS + INPUT_WIDTH) - 1:0] evenOutput;
+logic [(EVEN_NUMBER_OF_INPUTS + INPUT_WIDTH) - 1:0] evenOutputSum;
 TreeAdder #(
     .NUMBER_OF_INPUTS(EVEN_NUMBER_OF_INPUTS),
     .INPUT_WIDTH(INPUT_WIDTH)
 )evenSum(
   .inputs(inputs[EVEN_NUMBER_OF_INPUTS:0]),
-  .output(evenOutput)
+  .outputSum(evenOutputSum)
 );
 
-logic [(ODD_NUMBER_OF_INPUTS + INPUT_WIDTH) - 1:0] oddOutput;
+logic [(ODD_NUMBER_OF_INPUTS + INPUT_WIDTH) - 1:0] oddOutputSum;
 TreeAdder #(
     .NUMBER_OF_INPUTS(ODD_NUMBER_OF_INPUTS),
     .INPUT_WIDTH(INPUT_WIDTH)
 )oddSum(
   .inputs(inputs[ODD_NUMBER_OF_INPUTS:0]),
-  .output(oddOutput)
+  .outputSum(oddOutputSum)
 );
 
-assign output = evenSum + oddSum;
+assign outputSum = evenOutputSum + oddOutputSum;
     
 end
 
@@ -73,7 +73,7 @@ module GraphConstructor #(
 ) (
   input wire clk,
   input wire resetn,
-  input wire [WIRE_PERMUTATION_WIDTH -1:0] [NO_OF_WIRES - 1:0] gates [GATE_STAGES -1 :0];
+  input wire [WIRE_PERMUTATION_WIDTH -1:0] [NO_OF_WIRES - 1:0] gates [GATE_STAGES -1 :0],
   output logic [COLUMNS - 1:0] graphConnectionsList [ROWS-1:0]
 );
 
@@ -96,7 +96,7 @@ generate;
             // iterating all other gates to check if they are connected(connection criteria have a atleast one wire in common)
             if (i == j)
             begin
-                single_node_connections[j] = 1'b1; 
+                assign single_node_connections[j] = 1'b1; 
             end
             else
             begin
