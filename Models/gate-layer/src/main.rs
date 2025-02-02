@@ -1,103 +1,105 @@
-use std::usize;
+use std::io::prelude::*;
+use std::io::Result;
+use std::{env, fs::File, io::Write, usize};
+extern crate gate_internals;
 
-#[repr(u8)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum Base2GateControlFunc {
-    F = 0,      // false,
-    AND = 1,    // a & b,
-    AND_NB = 2, // a & (!b),
-    A = 3,      // a,
-    AND_NA = 4, // (!a) & b,
-    B = 5,      // b,
-    XOR = 6,    // a ^ b,
-    OR = 7,     // a | b,
-    NOR = 8,    // !(a | b),
-    EQUIV = 9,  // (a & b) | ((!a) & (!b)),
-    NB = 10,    // !b,
-    OR_NB = 11, // (!b) | a,
-    NA = 12,    // !a,
-    OR_NA = 13, // (!a) | b,
-    NAND = 14,  // !(a & b),
-    T = 15,     // true,
-}
-
-impl Base2GateControlFunc {
-    const fn from_u8(v: u8) -> Self {
-        match v {
-            0 => Self::F,
-            1 => Self::AND,
-            2 => Self::AND_NB,
-            3 => Self::A,
-            4 => Self::AND_NA,
-            5 => Self::B,
-            6 => Self::XOR,
-            7 => Self::OR,
-            8 => Self::NOR,
-            9 => Self::EQUIV,
-            10 => Self::NB,
-            11 => Self::OR_NB,
-            12 => Self::NA,
-            13 => Self::OR_NA,
-            14 => Self::NAND,
-            15 => Self::T,
-            _ => unreachable!(),
-        }
-    }
-
-    const fn evaluate(&self, a: bool, b: bool) -> bool {
-        match self {
-            Self::F => false,
-            Self::AND => a & b,
-            Self::AND_NB => a & (!b),
-            Self::A => a,
-            Self::AND_NA => (!a) & b,
-            Self::B => b,
-            Self::XOR => a ^ b,
-            Self::OR => a | b,
-            Self::NOR => !(a | b),
-            Self::EQUIV => (a & b) | ((!a) & (!b)),
-            Self::NB => !b,
-            Self::OR_NB => (!b) | a,
-            Self::NA => !a,
-            Self::OR_NA => (!a) | b,
-            Self::NAND => !(a & b),
-            Self::T => true,
-        }
-    }
-}
+use gate_internals::{Base2GateControlFunc, GetBoolVector, GetValueFromBoolVector};
 
 #[derive(Debug)]
 pub struct GateLayer<const NUMBER_OF_WIRES: usize> {
     wire_choices: [u8; 3],
     passthrough: bool,
-    func: Base2GateControlFunc
+    func: Base2GateControlFunc,
 }
 
-trait Layer< const NUMBER_OF_WIRES: usize> {
+trait Layer<const NUMBER_OF_WIRES: usize> {
     type Items;
-    
+
     fn evaluate(&self, values: [Self::Items; NUMBER_OF_WIRES]) -> [Self::Items; NUMBER_OF_WIRES];
 }
 
-impl <const NUMBER_OF_WIRES: usize> Layer<NUMBER_OF_WIRES> for GateLayer<NUMBER_OF_WIRES>  {
+impl<const NUMBER_OF_WIRES: usize> Layer<NUMBER_OF_WIRES> for GateLayer<NUMBER_OF_WIRES> {
     type Items = bool;
-    fn evaluate(&self, values: [Self::Items; NUMBER_OF_WIRES]) -> [Self::Items; NUMBER_OF_WIRES]{
+    fn evaluate(&self, values: [Self::Items; NUMBER_OF_WIRES]) -> [Self::Items; NUMBER_OF_WIRES] {
         let mut out = values;
         if !self.passthrough {
-            out[self.wire_choices[2] as usize] = self.func.evaluate(values[self.wire_choices[0] as usize], values[self.wire_choices[1] as usize]);
+            out[self.wire_choices[2] as usize] = self.func.evaluate(
+                values[self.wire_choices[0] as usize],
+                values[self.wire_choices[1] as usize],
+            );
         }
         out
     }
 }
 
+pub struct Stages<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize> {
+    gates: [GateLayer<NUMBER_OF_WIRES>; NUMBER_OF_STAGES],
+}
 
+impl<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize> Layer<NUMBER_OF_WIRES>
+    for Stages<NUMBER_OF_WIRES, NUMBER_OF_STAGES>
+{
+    type Items = bool;
+    fn evaluate(&self, values: [Self::Items; NUMBER_OF_WIRES]) -> [Self::Items; NUMBER_OF_WIRES] {
+        let mut out = values;
+        out
+    }
+}
+
+fn write_file(file_path: &str, contents: &str) -> Result<()> {
+    let mut file = File::create(file_path)?;
+    file.write_all(contents.as_bytes())
+}
 
 fn main() {
-    let g: GateLayer<3> =GateLayer{
-        passthrough: false,
-        wire_choices:[0, 1, 2],
-        func: Base2GateControlFunc::from_u8(9)
+    let args = env::args().collect::<Vec<_>>();
+
+    let (input, destination) = match args.len() {
+        1 => ("input.hex", "outpur.hex"),
+        2 => (args[1].as_str(), "output.hex"),
+        3 => (args[1].as_str(), args[2].as_str()),
+        _ => {
+            println!("[Warning] Arguments sent are improper {:?}", args);
+            println!("[INFO] The correct format is cmd [file location] [seed]. Both arguments are optional.");
+            std::process::exit(1);
+        }
     };
-    let inp = [true, true, false];
-    println!("Hello, gates {:?} ==> input ({:?}) -> output ({:?})", g, inp, g.evaluate(inp) );
+    const BIT_WIDTH: usize = 3;
+    let strings = (0..(1 << BIT_WIDTH))
+        .map(|n| format!("{:02x}", n))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let g: GateLayer<BIT_WIDTH> = GateLayer {
+        passthrough: false,
+        wire_choices: [0, 1, 2],
+        func: Base2GateControlFunc::from_u8(9),
+    };
+    let sequence = (0..(1 << BIT_WIDTH))
+        .map(|x| {
+            let bool_inputs = GetBoolVector(x);
+            let output = g.evaluate(bool_inputs);
+            GetValueFromBoolVector(output)
+        })
+        .map(|n| format!("{:02x}", n))
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    match write_file(&input, &strings) {
+        Ok(_) => {
+            println!("[INFO] Successfully written to file!");
+        }
+        Err(e) => {
+            println!("[ERROR] Unable to write to file {:?}.", e);
+        }
+    };
+
+    match write_file(&destination, &sequence) {
+        Ok(_) => {
+            println!("[INFO] Successfully written to file!");
+        }
+        Err(e) => {
+            println!("[ERROR] Unable to write to file {:?}.", e);
+        }
+    };
 }

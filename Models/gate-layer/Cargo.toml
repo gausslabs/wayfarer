@@ -3,5 +3,8 @@ name = "gate-layer"
 version = "0.1.0"
 edition = "2021"
 
+[dependencies.gate_internals]
+path = "src/gate-internals"
+
 [dependencies]
 rust = { git = "https://github.com/gausslabs/obfustopia.git"} 

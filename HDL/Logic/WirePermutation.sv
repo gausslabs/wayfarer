@@ -68,12 +68,8 @@ module OutputWireSelection #(
   input wire ready,
   input wire [NUMBER_OF_INPUT_WIRES - 1: 0] inputs,
   output logic [NUMBER_OF_INPUT_WIRES - 1: 0] outputs,
-  input wire [CHOICE_WIDTH - 1: 0] aSelect,
-  input wire [CHOICE_WIDTH - 1: 0] bSelect,
-  input wire [CHOICE_WIDTH - 1: 0] cSelect,
+  input wire [CHOICE_WIDTH - 1: 0] select,
   input wire passThrough,
-  input wire a,
-  input wire b,
   input wire c
 );
 
@@ -86,7 +82,7 @@ genvar i;
 generate;
   for(i = 0; i < NUMBER_OF_INPUT_WIRES; i++)
   begin
-    assign selected_outputs[i] = (aSelect == i)? a :( (bSelect == i) ? b :( (cSelect == i) ? c : (inputs[i]) ));
+    assign selected_outputs[i] = (select == i) ? c : inputs[i];
   end
 endgenerate
 

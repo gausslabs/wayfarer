@@ -60,12 +60,8 @@ OutputWireSelection  #(
   .ready(ready),
   .inputs(intermediate_wire_values),
   .outputs(outputWires),
-  .aSelect(aSelect),
-  .bSelect(bSelect),
-  .cSelect(cSelect),
+  .select(cSelect),
   .passThrough(passThrough),
-  .a(a),
-  .b(b),
   .c(c)
 );
 
