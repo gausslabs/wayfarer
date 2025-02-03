@@ -26,8 +26,10 @@ module InputWireSelection #(
   output logic [NUMBER_OF_INPUT_WIRES - 1: 0] outputs,
   input wire [CHOICE_WIDTH - 1: 0] aSelect,
   input wire [CHOICE_WIDTH - 1: 0] bSelect,
+  input wire [CHOICE_WIDTH - 1: 0] cSelect,
   output logic a,
-  output logic b
+  output logic b,
+  output logic c
 );
 ///////////////////////////////////////////////////////////////////////
 // Registered input selection
@@ -42,6 +44,7 @@ begin
   begin
     a <= inputs[aSelect];  
     b <= inputs[bSelect];
+    c <= inputs[cSelect];
     // simple registerd pass through for inputs
     outputs <= inputs;
   end
@@ -50,6 +53,7 @@ else
 begin
   a <= 0;  
   b <= 0;
+  c <= 0;
   outputs <= 0;
   validOut <= 0;
 end
@@ -96,7 +100,7 @@ if(resetn)
 begin
   validOut <= validIn;
   if(ready)
-    outputs <= passThrough ? selected_outputs : inputs;
+    outputs <= ~passThrough ? selected_outputs : inputs;
 end
 else
 begin

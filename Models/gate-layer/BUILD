@@ -1,6 +1,17 @@
-load("@rules_rust//rust:defs.bzl", "rust_binary")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library")
 
-# Declares a Rust binary target with the given name.
+rust_library(
+    name = "gate_internals",
+    
+    # Specifies the source files for the library.
+    srcs = ["src/gate-internals/lib.rs"],
+    
+    visibility = ["//:__subpackages__"],
+
+    edition = "2021"
+    
+)
+
 rust_binary(
     name = "gate_layer_model",
     
@@ -9,6 +20,7 @@ rust_binary(
     
     # Specifies dependencies for the binary.
     deps = [
+        ":gate_internals"
     ],
     edition = "2021"
 )

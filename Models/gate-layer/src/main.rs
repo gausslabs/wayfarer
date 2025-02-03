@@ -26,6 +26,7 @@ impl<const NUMBER_OF_WIRES: usize> Layer<NUMBER_OF_WIRES> for GateLayer<NUMBER_O
             out[self.wire_choices[2] as usize] = self.func.evaluate(
                 values[self.wire_choices[0] as usize],
                 values[self.wire_choices[1] as usize],
+                values[self.wire_choices[2] as usize]
             );
         }
         out
@@ -55,7 +56,7 @@ fn main() {
     let args = env::args().collect::<Vec<_>>();
 
     let (input, destination) = match args.len() {
-        1 => ("input.hex", "outpur.hex"),
+        1 => ("input.hex", "output.hex"),
         2 => (args[1].as_str(), "output.hex"),
         3 => (args[1].as_str(), args[2].as_str()),
         _ => {
@@ -64,7 +65,7 @@ fn main() {
             std::process::exit(1);
         }
     };
-    const BIT_WIDTH: usize = 3;
+    const BIT_WIDTH: usize = 5;
     let strings = (0..(1 << BIT_WIDTH))
         .map(|n| format!("{:02x}", n))
         .collect::<Vec<_>>()

@@ -59,8 +59,8 @@ impl Base2GateControlFunc {
         }
     }
 
-    pub const fn evaluate(&self, a: bool, b: bool) -> bool {
-        match self {
+    pub const fn evaluate(&self, a: bool, b: bool, c: bool) -> bool {
+        let func = match self {
             Self::F => false,
             Self::AND => a & b,
             Self::AND_NB => a & (!b),
@@ -77,7 +77,9 @@ impl Base2GateControlFunc {
             Self::OR_NA => (!a) | b,
             Self::NAND => !(a & b),
             Self::T => true,
-        }
+        };
+
+        func ^ c
     }
 }
 

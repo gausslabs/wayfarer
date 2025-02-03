@@ -8,6 +8,7 @@ module Gate #(
   input wire clk,
   input wire resetn,
   input wire ready,
+  output wire readyOut,
   input wire validIn,
   output logic validOut,
   input wire passThrough,
@@ -22,7 +23,7 @@ module Gate #(
 // internal values
 //////////////////////////////////////////////////////////////////
 logic [NUMBER_OF_INPUT_WIRES - 1:0] intermediate_wire_values;
-logic a, b, c, interim_valid;
+logic a, b, c, interim_valid, target;
 
 //////////////////////////////////////////////////////////////////
 // data flow
@@ -39,15 +40,18 @@ InputWireSelection #(
   .outputs(intermediate_wire_values),
   .aSelect(aSelect),
   .bSelect(bSelect),
+  .cSelect(cSelect),
   .a(a),
-  .b(b)
+  .b(b),
+  .c(c)
 );
 
 Toffoli gate_action (
   .gateChoice(gateChoice),
   .a(a),
   .b(b),
-  .c(c)
+  .c(c),
+  .target(target)
 );
 
 OutputWireSelection  #(
@@ -62,9 +66,10 @@ OutputWireSelection  #(
   .outputs(outputWires),
   .select(cSelect),
   .passThrough(passThrough),
-  .c(c)
+  .c(target)
 );
 
+assign readyOut = ready;
 
 endmodule
 
