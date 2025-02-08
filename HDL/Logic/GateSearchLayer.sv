@@ -1,6 +1,88 @@
 `ifndef GATE_SEARCH_LAYER
  `define GATE_SEARCH_LAYER
 
+package GatePkg;
+
+localparam GATE_DELAY = 2; // The input wire selection delay(1) + The output wire selection delay(1) 
+
+endpackage
+
+module StreamingGate #(
+  parameter NUMBER_OF_INPUT_WIRES = 5,
+  parameter CHOICE_WIDTH          = $clog2(NUMBER_OF_INPUT_WIRES)
+)(
+  input wire clk,
+  input wire resetn,
+  input wire passThrough,
+  input wire [3:0] gateChoice,
+  input wire [CHOICE_WIDTH - 1: 0] aSelect,
+  input wire [CHOICE_WIDTH - 1: 0] bSelect,
+  input wire [CHOICE_WIDTH - 1: 0] cSelect,
+  AXI4S.Master out,  AXI4S.Master passThroughOut,
+  AXI4S.Slave in,  AXI4S.Slave passThroughIn 
+);
+/////////////////////////////////////////////////////////////////
+// Getting constants
+/////////////////////////////////////////////////////////////////
+import GatePkg::GATE_DELAY;
+
+AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) pass_through[GATE_DELAY -1:0]();
+
+/////////////////////////////////////////////////////////////////
+// Creating the delayed stream
+/////////////////////////////////////////////////////////////////
+genvar i;
+
+for (i=0; i<GATE_DELAY; ++i) begin
+  if(i == 0)
+  begin
+    Passthrough first_PassThrough(
+    .clk(clk),
+    .resetn(resetn),
+    .out(pass_through[i]),
+    .in(in)
+    );
+  end
+  else 
+  begin
+    Passthrough next_PassThrough(
+    .clk(clk),
+    .resetn(resetn),
+    .out(pass_through[i]),
+    .in(pass_through[i-1])
+    );
+  end
+end
+
+StreamConnector last_pasthough (
+  .in(pass_through[GATE_DELAY-1]),
+  .out(passThroughOut)
+)
+
+/////////////////////////////////////////////////////////////////
+// Gate stream
+/////////////////////////////////////////////////////////////////
+Gate #(
+  .NUMBER_OF_INPUT_WIRES(NUMBER_OF_INPUT_WIRES),
+  .CHOICE_WIDTH(CHOICE_WIDTH)
+) dut (
+  .clk(clk),
+  .resetn(resetn),
+  .ready(out.ready),
+  .readyOut(in.ready),
+  .validIn(in.valid),
+  .validOut(out.valid),
+  .passThrough(passThrough),
+  .gateChoice(gateChoice),
+  .aSelect(aSelect),
+  .bSelect(bSelect),
+  .cSelect(cSelect),
+  .inputWires(in.data),
+  .outputWires(out.data)
+);
+
+endmodule
+
 module Gate #(
   parameter NUMBER_OF_INPUT_WIRES = 5,
   parameter CHOICE_WIDTH          = $clog2(NUMBER_OF_INPUT_WIRES)

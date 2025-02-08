@@ -100,9 +100,9 @@ begin
   clk = 0;
   resetn = 0;
   gateChoice = 4'd9;
-  aSelect = 3'd0 ;
-  bSelect = 3'd1 ;
-  cSelect = 3'd2;
+  aSelect = 3'd0;
+  bSelect = 3'd1;
+  cSelect = 3'd3;
 
   #10 resetn = 1;
 

@@ -66,6 +66,9 @@ fn main() {
         }
     };
     const BIT_WIDTH: usize = 5;
+    let a_wire = 0;
+    let b_wire = 1;
+    let c_wire = 3;
     let strings = (0..(1 << BIT_WIDTH))
         .map(|n| format!("{:02x}", n))
         .collect::<Vec<_>>()
@@ -73,7 +76,7 @@ fn main() {
 
     let g: GateLayer<BIT_WIDTH> = GateLayer {
         passthrough: false,
-        wire_choices: [0, 1, 2],
+        wire_choices: [a_wire, b_wire, c_wire],
         func: Base2GateControlFunc::from_u8(9),
     };
     let sequence = (0..(1 << BIT_WIDTH))
