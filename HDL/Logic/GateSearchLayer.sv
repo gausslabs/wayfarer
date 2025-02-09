@@ -18,8 +18,10 @@ module StreamingGate #(
   input wire [CHOICE_WIDTH - 1: 0] aSelect,
   input wire [CHOICE_WIDTH - 1: 0] bSelect,
   input wire [CHOICE_WIDTH - 1: 0] cSelect,
-  AXI4S.Master out,  AXI4S.Master passThroughOut,
-  AXI4S.Slave in,  AXI4S.Slave passThroughIn 
+  AXI4S.Master out,  
+  AXI4S.Master passThroughOut,
+  AXI4S.Slave in, 
+  AXI4S.Slave passThroughIn 
 );
 /////////////////////////////////////////////////////////////////
 // Getting constants
@@ -40,7 +42,7 @@ for (i=0; i<GATE_DELAY; ++i) begin
     .clk(clk),
     .resetn(resetn),
     .out(pass_through[i]),
-    .in(in)
+    .in(passThroughIn)
     );
   end
   else 
@@ -57,7 +59,7 @@ end
 StreamConnector last_pasthough (
   .in(pass_through[GATE_DELAY-1]),
   .out(passThroughOut)
-)
+);
 
 /////////////////////////////////////////////////////////////////
 // Gate stream
@@ -65,7 +67,7 @@ StreamConnector last_pasthough (
 Gate #(
   .NUMBER_OF_INPUT_WIRES(NUMBER_OF_INPUT_WIRES),
   .CHOICE_WIDTH(CHOICE_WIDTH)
-) dut (
+) gate_layer (
   .clk(clk),
   .resetn(resetn),
   .ready(out.ready),

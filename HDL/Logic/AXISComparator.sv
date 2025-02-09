@@ -2,7 +2,9 @@
  `define AXIS_COMPORATOR_SV
 
 
-module AXISComparator (
+module AXISComparator #(
+  parameter NAME = "out"
+)(
   input wire clk,
   input wire resetn,
   AXI4S.Slave in1,
@@ -26,7 +28,7 @@ begin
         _equal <= _equal & 1;
     else
         _equal <= _equal & 0;
-    $display("[First Input](%d) == (%d)[Second Input], equal %b", in1.data, in2.data, (in1.data == in2.data));
+    $display("(%s)[First Input](%d) == (%d)[Second Input], equal %b",NAME, in1.data, in2.data, (in1.data == in2.data));
   end
 end
 else

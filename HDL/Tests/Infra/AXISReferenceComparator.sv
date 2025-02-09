@@ -4,9 +4,10 @@
 `include "AXIS.sv"
 
 module AXISReferenceComparator #(
-  parameter DATA_WIDTH = 32,
-  parameter ADDR_WIDTH = 10,
-  parameter LIMIT      = (1<<ADDR_WIDTH),
+  parameter DATA_WIDTH  = 32,
+  parameter ADDR_WIDTH  = 10,
+  parameter LIMIT       = (1<<ADDR_WIDTH),
+  parameter NAME        = "out",
   parameter SOURCE_FILE = "source.hex"
 ) (
   input wire clk,
@@ -35,7 +36,9 @@ AXISSource #(
 // comparing the data
 ///////////////////////////////////////////////////////////////////////
 
-AXISComparator comparator (
+AXISComparator #(
+  .NAME(NAME)
+) comparator (
   .clk   (clk      ),
   .resetn(resetn   ),
   .in1   (in       ),
