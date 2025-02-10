@@ -39,7 +39,8 @@ endmodule
 
 /////////////////////////////////////////////////////////////////
 // StreamSelectBasedOnIDRange will always pass values that are
-// in  the range [LOWER_LIMIT, UPPER_LIMIT]
+// in  the range [LOWER_LIMIT, UPPER_LIMIT] or the id is 0.
+// O is treated as a broadcast message.
 /////////////////////////////////////////////////////////////////
 module StreamSelectBasedOnIDRange #(
     type data_type = StreamSelectionPkg::StreamData,
@@ -66,7 +67,7 @@ assign in.ready = out.ready;
 /////////////////////////////////////////////////////////////////
 // data connection
 /////////////////////////////////////////////////////////////////
-assign out.valid = in.valid & (value.id >= LOWER_LIMIT | value.id <= UPPER_LIMIT) ;
+assign out.valid = in.valid & ((value.id >= LOWER_LIMIT | value.id <= UPPER_LIMIT) | value.id == '0);
 assign out.data = value;
 assign out.keep  = in.keep;
 assign out.last  = in.last;
@@ -76,7 +77,8 @@ endmodule
 
 /////////////////////////////////////////////////////////////////
 // StreamDataExtractionBasedOnID will always pass data for
-// inputs whose id's are equal to SELECTION_VALUE or 0
+// inputs whose id's are equal to SELECTION_VALUE or 0.
+// O is treated as a broadcast message.
 /////////////////////////////////////////////////////////////////
 module StreamDataExtractionBasedOnID #(
     type data_type = StreamSelectionPkg::StreamData,
