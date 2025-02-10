@@ -44,9 +44,9 @@ endmodule
 /////////////////////////////////////////////////////////////////
 module StreamSelectBasedOnIDRange #(
     type data_type = StreamSelectionPkg::StreamData,
-    parameter ID_WIDTH = StreamSelectionPkg::CONFIG_ID_WIDTH,
-    parameter logic [ID_WIDTH -1 :0] UPPER_LIMIT = 'd2,
-    parameter logic [ID_WIDTH -1 :0] LOWER_LIMIT = 'd0
+    type id_type   = StreamSelectionPkg::agentID,
+    parameter id_type UPPER_LIMIT = id_type'(2),
+    parameter id_type LOWER_LIMIT = id_type'(1)
 ) (
   input wire clk,
   input wire resetn,
@@ -67,7 +67,7 @@ assign in.ready = out.ready;
 /////////////////////////////////////////////////////////////////
 // data connection
 /////////////////////////////////////////////////////////////////
-assign out.valid = in.valid & ((value.id >= LOWER_LIMIT | value.id <= UPPER_LIMIT) | value.id == '0);
+assign out.valid = in.valid & ((value.id >= LOWER_LIMIT | value.id <= UPPER_LIMIT) | value.id == id_type'(0));
 assign out.data = value;
 assign out.keep  = in.keep;
 assign out.last  = in.last;
@@ -82,8 +82,8 @@ endmodule
 /////////////////////////////////////////////////////////////////
 module StreamDataExtractionBasedOnID #(
     type data_type = StreamSelectionPkg::StreamData,
-    parameter ID_WIDTH = StreamSelectionPkg::CONFIG_ID_WIDTH,
-    parameter logic [ID_WIDTH -1 :0] SELECTION_VALUE = 'd2
+    type id_type   = StreamSelectionPkg::agentID,
+    parameter id_type SELECTION_VALUE = 'd2
 ) (
   input wire clk,
   input wire resetn,
