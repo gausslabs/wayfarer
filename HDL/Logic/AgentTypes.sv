@@ -5,21 +5,25 @@ package AgentPkg;
 localparam NUMBER_OF_STAGES = 6;
 localparam STAGES_ID_WIDTH = $clog2(NUMBER_OF_STAGES);
 localparam DATA_WIDTH = 8;
+localparam NUMBER_OF_INPUT_WIRES = 4;
 
-localparam GATE_CONFIG_SIZE = 2;
+localparam GATE_CONFIG_SIZE = 4 * 4;
+localparam GATE_CONFIG_IN_STREAM = (GATE_CONFIG_SIZE + (DATA_WIDTH - 1)) / DATA_WIDTH;
+localparam GATE_CONFIG_COUNT_SIZE = $clog2(GATE_CONFIG_IN_STREAM);
 
+typedef logic [(DATA_WIDTH/2) - 1:0] nibbleType;
 typedef logic [DATA_WIDTH - 1:0] byteType;
 
 typedef struct packed {
-    byteType gateSelect;
-    byteType cSelect;
-    byteType bSelect;
-    byteType aSelect;
+    nibbleType gateSelect;
+    nibbleType cSelect;
+    nibbleType bSelect;
+    nibbleType aSelect;
 } GateConfig;
 
 typedef union packed {
     GateConfig gateConfig;
-    logic [GATE_CONFIG_SIZE -1 :0] [DATA_WIDTH - 1:0] data;
+    logic [GATE_CONFIG_IN_STREAM -1 :0] [DATA_WIDTH - 1:0] data;
 } GateConfigStore;
 
 // Essentially will make a gate passthrough if the choice
