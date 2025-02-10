@@ -1,7 +1,10 @@
 `ifndef STREAM_SELECTOR
  `define STREAM_SELECTOR
 
-
+/////////////////////////////////////////////////////////////////
+// StreamSelectBasedOnType will always pass values that are
+// SELECTION_VALUE
+/////////////////////////////////////////////////////////////////
 module StreamSelectBasedOnType #(
     type enum_type = StreamSelectionPkg::ConfigType,
     type data_type = StreamSelectionPkg::AgentConfig,
@@ -34,5 +37,77 @@ assign out.last  = in.last;
 
 endmodule
 
+/////////////////////////////////////////////////////////////////
+// StreamSelectBasedOnIDRange will always pass values that are
+// in  the range [LOWER_LIMIT, UPPER_LIMIT]
+/////////////////////////////////////////////////////////////////
+module StreamSelectBasedOnIDRange #(
+    type data_type = StreamSelectionPkg::StreamData,
+    parameter ID_WIDTH = StreamSelectionPkg::CONFIG_ID_WIDTH,
+    parameter logic [ID_WIDTH -1 :0] UPPER_LIMIT = 'd2,
+    parameter logic [ID_WIDTH -1 :0] LOWER_LIMIT = 'd0
+) (
+  input wire clk,
+  input wire resetn,
+  AXI4S.Master out,
+  AXI4S.Slave in 
+);
+/////////////////////////////////////////////////////////////////
+// internal values
+/////////////////////////////////////////////////////////////////
+data_type value;
+assign value = in.data;
+
+/////////////////////////////////////////////////////////////////
+// ready connection
+/////////////////////////////////////////////////////////////////
+assign in.ready = out.ready;
+
+/////////////////////////////////////////////////////////////////
+// data connection
+/////////////////////////////////////////////////////////////////
+assign out.valid = in.valid & (value.id >= LOWER_LIMIT | value.id <= UPPER_LIMIT) ;
+assign out.data = value;
+assign out.keep  = in.keep;
+assign out.last  = in.last;
+
+
+endmodule
+
+/////////////////////////////////////////////////////////////////
+// StreamDataExtractionBasedOnID will always pass data for
+// inputs whose id's are equal to SELECTION_VALUE or 0
+/////////////////////////////////////////////////////////////////
+module StreamDataExtractionBasedOnID #(
+    type data_type = StreamSelectionPkg::StreamData,
+    parameter ID_WIDTH = StreamSelectionPkg::CONFIG_ID_WIDTH,
+    parameter logic [ID_WIDTH -1 :0] SELECTION_VALUE = 'd2
+) (
+  input wire clk,
+  input wire resetn,
+  AXI4S.Master out,
+  AXI4S.Slave in 
+);
+/////////////////////////////////////////////////////////////////
+// internal values
+/////////////////////////////////////////////////////////////////
+data_type value;
+assign value = in.data;
+
+/////////////////////////////////////////////////////////////////
+// ready connection
+/////////////////////////////////////////////////////////////////
+assign in.ready = out.ready;
+
+/////////////////////////////////////////////////////////////////
+// data connection
+/////////////////////////////////////////////////////////////////
+assign out.valid = in.valid & (value.id == SELECTION_VALUE | value.id == '0) ;
+assign out.data = value.data;
+assign out.keep  = in.keep;
+assign out.last  = in.last;
+
+
+endmodule
 
 `endif
