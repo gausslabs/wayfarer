@@ -37,7 +37,7 @@ localparam SEED_SIZE = 2*LFSR_SIZE;
 localparam SEED_CONFIG_IN_BYTES = (SEED_SIZE + (DATA_WIDTH - 1)) / DATA_WIDTH;
 localparam LFSR_CONFIG_COUNT_SIZE = $clog2(SEED_CONFIG_IN_BYTES);
 
-type logic [LFSR_SIZE - 1:0] lfsrType;
+typedef logic [LFSR_SIZE - 1:0] lfsrType;
 
 typedef struct packed {
   lfsrType gateSeed;
