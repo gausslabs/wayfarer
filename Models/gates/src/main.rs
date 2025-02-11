@@ -1,9 +1,5 @@
 use std::{
-    collections::{BTreeSet, HashSet},
-    env,
-    error::Error,
-    fs,
-    hash::Hash,
+    collections::{BTreeSet, HashSet}, env, error::Error, fmt::{Debug, Display}, fs, hash::Hash
 };
 
 #[derive(Hash, Eq, PartialEq, Debug, PartialOrd, Ord, Clone, Copy)]
@@ -44,18 +40,34 @@ impl Wires {
     }
 }
 
+
+pub trait GateWires: Ord + PartialOrd + Clone + Copy + Debug {
+    type Item;
+
+    fn new(value: Self::Item) -> Option<Box<Self>>;
+
+    fn value(&self) -> Self::Item;
+
+    fn all() -> BTreeSet<Box<Self>>;
+
+    fn number_of_choices() -> usize {
+        let len = Self::all().len();
+        ((len - 2)..=len).product()
+    }
+}
+
 fn bits(len: usize) -> u32 {
     (len as f32).log2().ceil() as u32
 }
 
 #[derive(Hash, Eq, PartialEq, Debug, PartialOrd, Ord, Clone)]
-pub struct WirePermutations {
-    value: Wires,
-    set: BTreeSet<Box<WirePermutations>>,
+pub struct WirePermutations<T: GateWires> {
+    value: T,
+    set: BTreeSet<Box<WirePermutations<T>>>,
 }
 
-impl WirePermutations {
-    pub fn new(value: Wires, _set: BTreeSet<Wires>) -> Self {
+impl<T: GateWires>  WirePermutations<T> {
+    pub fn new(value: T, _set: BTreeSet<T>) -> Self {
         Self {
             value: value,
             set: BTreeSet::new(),
@@ -63,7 +75,7 @@ impl WirePermutations {
     }
 
     // iterating for only three levels
-    pub fn from_value(value: Wires, set: BTreeSet<Wires>, depth: u8) -> Self {
+    pub fn from_value(value: T, set: BTreeSet<T>, depth: u8) -> Self {
         if depth <= 1 {
             return Self {
                 value: value,
@@ -76,12 +88,12 @@ impl WirePermutations {
             .clone()
             .filter(|w| **w != value)
             .map(|w| *w)
-            .collect::<BTreeSet<Wires>>();
+            .collect::<BTreeSet<T>>();
 
         let permutaion_set = sub_set
             .iter()
             .map(|x| Box::new(WirePermutations::from_value(*x, sub_set.clone(), depth - 1)))
-            .collect::<BTreeSet<Box<WirePermutations>>>();
+            .collect::<BTreeSet<Box<WirePermutations<T>>>>();
 
         Self {
             value: value,
@@ -92,10 +104,10 @@ impl WirePermutations {
     pub fn to_string(&self, store: &mut Vec<String>) {
         if self.set.is_empty() {
             // base case of having no children
-            store.append(&mut vec![format!("{}", self.value.value())]);
+            store.append(&mut vec![format!("{:#?}", self.value.value())]);
         } else {
             // iterating through children and appending them
-            store.append(&mut vec![format!("{}", self.value.value())]);
+            store.append(&mut vec![format!("{:#?}", self.value.value())]);
             for w in self.set.iter() {
                 w.to_string(store);
             }
@@ -103,12 +115,12 @@ impl WirePermutations {
     }
 }
 #[derive(Debug)]
-pub struct PermutationTree {
-    elements: Vec<WirePermutations>,
+pub struct PermutationTree<T: GateWires> {
+    elements: Vec<WirePermutations<T>>,
 }
 
-impl PermutationTree {
-    pub fn generate(set: BTreeSet<Wires>) -> Self {
+impl<T: GateWires> PermutationTree<T> {
+    pub fn generate(set: BTreeSet<T>) -> Self {
         let mut seen = HashSet::new();
         let tree = set
             .iter()

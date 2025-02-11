@@ -16,3 +16,7 @@ pub trait Layer<const NUMBER_OF_WIRES: usize> {
 
     fn evaluate(&self, values: [Self::Items; NUMBER_OF_WIRES]) -> [Self::Items; NUMBER_OF_WIRES];
 }
+
+pub fn bits(len: usize) -> u32 {
+    (len as f32).log2().ceil() as u32
+}
