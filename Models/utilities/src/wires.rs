@@ -15,7 +15,7 @@ macro_rules! create_wire_enum {
                     $(Self::$variant => $value as $output),*
                 }
             }
-            
+
             pub fn value_from(val: $output) -> Self {
                 match val {
                     $($value => Self::$variant,)*

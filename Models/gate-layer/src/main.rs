@@ -21,7 +21,7 @@ impl<const NUMBER_OF_WIRES: usize> Layer<NUMBER_OF_WIRES> for GateLayer<NUMBER_O
             out[self.wire_choices[2] as usize] = self.func.evaluate(
                 values[self.wire_choices[0] as usize],
                 values[self.wire_choices[1] as usize],
-                values[self.wire_choices[2] as usize]
+                values[self.wire_choices[2] as usize],
             );
         }
         out
@@ -38,6 +38,7 @@ impl<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize> Layer<NUMBER_O
     type Items = bool;
     fn evaluate(&self, values: [Self::Items; NUMBER_OF_WIRES]) -> [Self::Items; NUMBER_OF_WIRES] {
         let mut out = values;
+        todo!("Stages implmentation will be done later or moved");
         out
     }
 }

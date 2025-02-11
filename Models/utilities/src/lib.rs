@@ -8,7 +8,6 @@ pub fn write_file(file_path: &str, contents: &str) -> Result<()> {
     file.write_all(contents.as_bytes())
 }
 
-
 pub trait Layer<const NUMBER_OF_WIRES: usize> {
     type Items;
 
