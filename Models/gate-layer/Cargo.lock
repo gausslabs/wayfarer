@@ -233,13 +233,9 @@ checksum = "e6d5a32815ae3f33302d95fdcb2ce17862f8c65363dcfd29360480ba1001fc9c"
 name = "gate-layer"
 version = "0.1.0"
 dependencies = [
- "gate_internals",
  "rust",
+ "utilities",
 ]
-
-[[package]]
-name = "gate_internals"
-version = "0.1.0"
 
 [[package]]
 name = "generic-array"
@@ -780,6 +776,10 @@ name = "unsafe-libyaml"
 version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "673aac59facbab8a9007c7f6108d11f63b603f7cabff99fabf650fea5c32b861"
+
+[[package]]
+name = "utilities"
+version = "0.1.0"
 
 [[package]]
 name = "version_check"

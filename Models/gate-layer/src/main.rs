@@ -1,21 +1,16 @@
-use std::io::prelude::*;
-use std::io::Result;
-use std::{env, fs::File, io::Write, usize};
-extern crate gate_internals;
+// use std::io::prelude::*;
+// use std::io::Result;
+use std::{env, usize};
+use utilities::{write_file, Layer};
+// extern crate gate_internals;
 
-use gate_internals::{Base2GateControlFunc, GetBoolVector, GetValueFromBoolVector};
+use utilities::gate_internals::{Base2GateControlFunc, GetBoolVector, GetValueFromBoolVector};
 
 #[derive(Debug)]
 pub struct GateLayer<const NUMBER_OF_WIRES: usize> {
     wire_choices: [u8; 3],
     passthrough: bool,
     func: Base2GateControlFunc,
-}
-
-trait Layer<const NUMBER_OF_WIRES: usize> {
-    type Items;
-
-    fn evaluate(&self, values: [Self::Items; NUMBER_OF_WIRES]) -> [Self::Items; NUMBER_OF_WIRES];
 }
 
 impl<const NUMBER_OF_WIRES: usize> Layer<NUMBER_OF_WIRES> for GateLayer<NUMBER_OF_WIRES> {
@@ -45,11 +40,6 @@ impl<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize> Layer<NUMBER_O
         let mut out = values;
         out
     }
-}
-
-fn write_file(file_path: &str, contents: &str) -> Result<()> {
-    let mut file = File::create(file_path)?;
-    file.write_all(contents.as_bytes())
 }
 
 fn main() {
