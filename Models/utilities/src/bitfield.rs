@@ -6,38 +6,39 @@ pub struct BitFeild<'a> {
     dict: HashMap<String, usize>,
 }
 
-
 impl<'a> BitFeild<'a> {
     pub fn new(feilds: Vec<(&'a str, u8)>) -> Self {
-        Self{
+        Self {
             feilds,
-            dict: HashMap::new()
+            dict: HashMap::new(),
         }
     }
 
     pub fn value(&self) -> usize {
-        let (_, sum) = self.feilds.iter().fold((0,0), |(position, sum), &(key, shift)|{
-           let mut new_sum = sum;
-           let mut new_pos = position;
-           new_pos += shift as usize;
-           if self.dict.contains_key(key) {
-               new_sum += self.dict.get(key).unwrap() << position;
-           }
-           (new_pos, new_sum)
-        });
+        let (_, sum) = self
+            .feilds
+            .iter()
+            .fold((0, 0), |(position, sum), &(key, shift)| {
+                let mut new_sum = sum;
+                let mut new_pos = position;
+                new_pos += shift as usize;
+                if self.dict.contains_key(key) {
+                    new_sum += self.dict.get(key).unwrap() << position;
+                }
+                (new_pos, new_sum)
+            });
         sum
     }
 
-    pub fn set(&mut self,key: &str, value: usize) -> bool{
-        if self.feilds.iter().any(|&(s,_)| s == key) == false {
-            return  false;
+    pub fn set(&mut self, key: &str, value: usize) -> bool {
+        if self.feilds.iter().any(|&(s, _)| s == key) == false {
+            return false;
         }
         match self.dict.insert(key.to_string(), value) {
-            _ => true
+            _ => true,
         }
     }
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -51,7 +52,7 @@ mod tests {
 
         // Act
         let mut bitfield = BitFeild::new(fields);
-        
+
         assert_eq!(bitfield.set("field1", 0xf), true);
 
         // Assert

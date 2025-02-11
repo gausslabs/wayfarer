@@ -3,43 +3,7 @@ use std::{env, usize};
 use utilities::{write_file, Layer};
 
 use utilities::gate_internals::{Base2GateControlFunc, get_bool_vector, get_value_from_bool_vector};
-
-#[derive(Debug)]
-pub struct GateLayer<const NUMBER_OF_WIRES: usize> {
-    wire_choices: [u8; 3],
-    passthrough: bool,
-    func: Base2GateControlFunc,
-}
-
-impl<const NUMBER_OF_WIRES: usize> Layer<NUMBER_OF_WIRES> for GateLayer<NUMBER_OF_WIRES> {
-    type Items = bool;
-    fn evaluate(&self, values: [Self::Items; NUMBER_OF_WIRES]) -> [Self::Items; NUMBER_OF_WIRES] {
-        let mut out = values;
-        if !self.passthrough {
-            out[self.wire_choices[2] as usize] = self.func.evaluate(
-                values[self.wire_choices[0] as usize],
-                values[self.wire_choices[1] as usize],
-                values[self.wire_choices[2] as usize],
-            );
-        }
-        out
-    }
-}
-
-pub struct Stages<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize> {
-    gates: [GateLayer<NUMBER_OF_WIRES>; NUMBER_OF_STAGES],
-}
-
-impl<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize> Layer<NUMBER_OF_WIRES>
-    for Stages<NUMBER_OF_WIRES, NUMBER_OF_STAGES>
-{
-    type Items = bool;
-    fn evaluate(&self, values: [Self::Items; NUMBER_OF_WIRES]) -> [Self::Items; NUMBER_OF_WIRES] {
-        let mut out = values;
-        todo!("Stages implmentation will be done later or moved");
-        out
-    }
-}
+use utilities::stages::GateLayer;
 
 fn main() {
     let args = env::args().collect::<Vec<_>>();
@@ -63,11 +27,11 @@ fn main() {
         .collect::<Vec<_>>()
         .join("\n");
 
-    let g: GateLayer<BIT_WIDTH> = GateLayer {
-        passthrough: false,
-        wire_choices: [a_wire, b_wire, c_wire],
-        func: Base2GateControlFunc::from_u8(9),
-    };
+    let g: GateLayer<BIT_WIDTH> = GateLayer::new(
+        [a_wire, b_wire, c_wire],
+        false,
+        Base2GateControlFunc::from_u8(9)
+    );
     let sequence = (0..(1 << BIT_WIDTH))
         .map(|x| {
             let bool_inputs = get_bool_vector(x);

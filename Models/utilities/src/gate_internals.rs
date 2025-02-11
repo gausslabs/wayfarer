@@ -80,4 +80,25 @@ impl Base2GateControlFunc {
 
         func ^ c
     }
+
+    pub const fn value(&self) -> u8 {
+        match self {
+            Self::F => 0,
+            Self::AND => 1,
+            Self::AND_NB => 2,
+            Self::A => 3,
+            Self::AND_NA => 4,
+            Self::B => 5,
+            Self::XOR => 6,
+            Self::OR => 7,
+            Self::NOR => 8,
+            Self::EQUIV => 9,
+            Self::NB => 10,
+            Self::OR_NB => 11,
+            Self::NA => 12,
+            Self::OR_NA => 13,
+            Self::NAND => 14,
+            Self::T => 15,
+        }
+    }
 }
