@@ -1,6 +1,8 @@
 `ifndef STREAM_PROCESSING_TYPES
  `define STREAM_PROCESSING_TYPES
 
+`include "AgentTypes.sv"
+
 package StreamSelectionPkg;
 localparam NUMBER_OF_STAGES = AgentPkg::NUMBER_OF_STAGES;
 localparam STAGES_ID_WIDTH = AgentPkg::STAGES_ID_WIDTH;

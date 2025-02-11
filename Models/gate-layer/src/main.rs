@@ -1,8 +1,6 @@
-// use std::io::prelude::*;
-// use std::io::Result;
+
 use std::{env, usize};
 use utilities::{write_file, Layer};
-// extern crate gate_internals;
 
 use utilities::gate_internals::{Base2GateControlFunc, GetBoolVector, GetValueFromBoolVector};
 

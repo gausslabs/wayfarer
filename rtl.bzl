@@ -17,7 +17,7 @@ lint_rtl = rule(
     implementation = _lint_impl,
     attrs = {
       "top" : attr.string(),
-      "include_dirs": attr.string_list(default= ["./HDL/Logic", "./HDL/Tests/Infra"]),
+      "include_dirs": attr.string_list(default= ["./HDL/Types","./HDL/Logic", "./HDL/Tests/Infra"]),
       "template_file": attr.label(allow_single_file = [".tcl.tpl"], default="Scripts/Lint.tcl.tpl"),
       "part" : attr.string(default= "xc7a35tcpg236-1"),
       "suffix": attr.string(default= "Lint.tcl")

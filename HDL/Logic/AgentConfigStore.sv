@@ -3,6 +3,7 @@
 
 module ReferenceConfigExtraction #(
     type type_of_store = AgentPkg::GateConfigStore,
+    type input_data_type = StreamSelectionPkg::AgentConfig,
     parameter ADDR_SIZE = AgentPkg::GATE_CONFIG_COUNT_SIZE
 )(
   input  wire       clk,
@@ -15,7 +16,9 @@ module ReferenceConfigExtraction #(
 // internal values
 /////////////////////////////////////////////////////////////////
 logic [ADDR_SIZE -1 :0] addr;
-assign in.ready = 1;
+input_data_type inData;
+assign in.ready = resetn;
+assign inData = in.data;
 
 Counter #(
   .COUNTER_WIDTH(ADDR_SIZE)
@@ -36,7 +39,7 @@ begin
   // When values are being loaded the config is in valid
   validOut <= ~in.valid;
   if (in.valid)
-    out.data[addr] <= in.data;
+    out.data[addr] <= inData.data;
 end
 else
 begin
