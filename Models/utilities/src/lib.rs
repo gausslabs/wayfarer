@@ -2,6 +2,7 @@ use std::io::Result;
 use std::{fs::File, io::Write, usize};
 pub mod gate_internals;
 pub mod wires;
+pub mod bitfield;
 
 pub fn write_file(file_path: &str, contents: &str) -> Result<()> {
     let mut file = File::create(file_path)?;

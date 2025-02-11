@@ -2,7 +2,7 @@
 use std::{env, usize};
 use utilities::{write_file, Layer};
 
-use utilities::gate_internals::{Base2GateControlFunc, GetBoolVector, GetValueFromBoolVector};
+use utilities::gate_internals::{Base2GateControlFunc, get_bool_vector, get_value_from_bool_vector};
 
 #[derive(Debug)]
 pub struct GateLayer<const NUMBER_OF_WIRES: usize> {
@@ -70,9 +70,9 @@ fn main() {
     };
     let sequence = (0..(1 << BIT_WIDTH))
         .map(|x| {
-            let bool_inputs = GetBoolVector(x);
+            let bool_inputs = get_bool_vector(x);
             let output = g.evaluate(bool_inputs);
-            GetValueFromBoolVector(output)
+            get_value_from_bool_vector(output)
         })
         .map(|n| format!("{:02x}", n))
         .collect::<Vec<_>>()

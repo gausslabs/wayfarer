@@ -1,4 +1,4 @@
-pub fn GetBoolVector<const BIT_WIDTH: usize>(value: usize) -> [bool; BIT_WIDTH] {
+pub fn get_bool_vector<const BIT_WIDTH: usize>(value: usize) -> [bool; BIT_WIDTH] {
     let mut bit_store = [false; BIT_WIDTH];
     for i in 0..BIT_WIDTH {
         bit_store[i] = (((value & (1 << i)) >> i) == 1) as bool;
@@ -6,7 +6,7 @@ pub fn GetBoolVector<const BIT_WIDTH: usize>(value: usize) -> [bool; BIT_WIDTH] 
     bit_store
 }
 
-pub fn GetValueFromBoolVector<const BIT_WIDTH: usize>(bit_store: [bool; BIT_WIDTH]) -> usize {
+pub fn get_value_from_bool_vector<const BIT_WIDTH: usize>(bit_store: [bool; BIT_WIDTH]) -> usize {
     let mut value: usize = 0;
     for i in 0..BIT_WIDTH {
         value = value + ((bit_store[i] as usize) * (1 << i));
