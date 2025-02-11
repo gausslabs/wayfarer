@@ -136,7 +136,7 @@ logic ready [TOTAL_OUTPUT_STREAM - 1 :0];
 genvar j;
 for (j=0; j<TOTAL_OUTPUT_STREAM; j++) begin
   assign select[j] = (selection == j) ? enableSelection & in.valid :0;
-  assign ready[j] = out[j].ready;
+  assign ready[j] = out[j].ready & enableSelection;
 end
 
 always_comb begin
