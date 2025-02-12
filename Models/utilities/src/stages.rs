@@ -1,36 +1,34 @@
-use std::collections::HashSet;
-
 use crate::bitfield::BitFeild;
 
 use super::gate_internals::Base2GateControlFunc;
 use super::*;
 
-pub fn get_wire_permutations<const NUMBER_OF_WIRES: usize>() -> Vec<[usize;3]> {
-    let mut all = vec![];
-        let mut active_set = HashSet::new();
+pub const fn n_p_3(size: usize) -> usize {
+    size * (size - 1) * (size - 2)
+}
+
+pub fn get_wire_permutations<const NUMBER_OF_WIRES: usize, const PERMUTATION_SIZE: usize>(
+) -> [[usize; 3]; PERMUTATION_SIZE] {
+    let mut all = [[0; 3]; PERMUTATION_SIZE];
+    let mut count = 0;
+    for i in 0..NUMBER_OF_WIRES {
         let mut active_vals = [0; 3];
-        for i in 0..NUMBER_OF_WIRES {
-            active_set.insert(i);
-            active_vals[0] = i;
-            for j in 0..NUMBER_OF_WIRES {
-                if active_set.contains(&j) {
-                    continue;
-                } else {
-                    active_set.insert(j);
-                    active_vals[1] = j;
-                    for k in 0..NUMBER_OF_WIRES {
-                        if active_set.contains(&k) {
-                            continue;
-                        } else {
-                            active_vals[2] = k;
-                            all.push(active_vals.clone());
-                        }
+        active_vals[0] = i;
+        for j in 0..NUMBER_OF_WIRES {
+            if j != i {
+                active_vals[1] = j;
+                for k in 0..NUMBER_OF_WIRES {
+                    if k == i || k == j {
+                        continue;
+                    } else {
+                        active_vals[2] = k;
+                        all[count] = active_vals.clone();
+                        count += 1;
                     }
-                    active_set.remove(&j);
                 }
             }
-            active_set.remove(&i);
         }
+    }
     all
 }
 
@@ -42,9 +40,12 @@ pub struct GateLayer<const NUMBER_OF_WIRES: usize> {
 }
 
 impl<const NUMBER_OF_WIRES: usize> GateLayer<NUMBER_OF_WIRES> {
-
-    pub fn new(wire_choices: [u8; 3], passthrough: bool, func: Base2GateControlFunc,) -> Self {
-        Self { wire_choices, passthrough, func }
+    pub fn new(wire_choices: [u8; 3], passthrough: bool, func: Base2GateControlFunc) -> Self {
+        Self {
+            wire_choices,
+            passthrough,
+            func,
+        }
     }
 
     pub fn get_config(&self) -> usize {
@@ -109,5 +110,20 @@ impl<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize> Layer<NUMBER_O
             out = self.gates[i].evaluate(out)
         }
         out
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashSet;
+
+    #[test]
+    fn wire_permutations() {
+        const NUMBER_OF_WIRES: usize = 13;
+        const PERMUTATION_SIZE: usize = n_p_3(NUMBER_OF_WIRES);
+        let perms = get_wire_permutations::<NUMBER_OF_WIRES, PERMUTATION_SIZE>();
+        let set = HashSet::from(perms);
+        assert_eq!(set.len(), PERMUTATION_SIZE)
     }
 }
