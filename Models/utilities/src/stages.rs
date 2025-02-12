@@ -4,16 +4,20 @@ use crate::lfsrs::LFSR16;
 use super::gate_internals::Base2GateControlFunc;
 use super::*;
 
+/////////////////////////////////////////////////////////////////
+// utilities
+/////////////////////////////////////////////////////////////////
+
 pub const fn n_p_3(size: usize) -> usize {
     size * (size - 1) * (size - 2)
 }
 
 // TODO:
-// Make it a const func without clone and for loops.
-pub fn get_wire_permutations<const NUMBER_OF_WIRES: usize, const PERMUTATION_SIZE: usize>(
-) -> [[usize; 3]; PERMUTATION_SIZE] {
-    let mut all = [[0; 3]; PERMUTATION_SIZE];
-    let mut count = 0;
+// Make it a const func without clone, for loops and vec.
+pub fn get_wire_permutations<const NUMBER_OF_WIRES: usize>(
+) -> Vec<[usize; 3]> {
+    let mut all = vec![];
+    // let mut count = 0;
     for i in 0..NUMBER_OF_WIRES {
         let mut active_vals = [0; 3];
         active_vals[0] = i;
@@ -25,8 +29,8 @@ pub fn get_wire_permutations<const NUMBER_OF_WIRES: usize, const PERMUTATION_SIZ
                         continue;
                     } else {
                         active_vals[2] = k;
-                        all[count] = active_vals.clone();
-                        count += 1;
+                        all.push(active_vals.clone());
+                        // count += 1;
                     }
                 }
             }
@@ -35,47 +39,18 @@ pub fn get_wire_permutations<const NUMBER_OF_WIRES: usize, const PERMUTATION_SIZ
     all
 }
 
-#[derive(Debug)]
-pub struct SearchLayer<const NUMBER_OF_WIRES: usize> {
-    wire_permutations: Vec<[u8; 3]>,
-    permutation_index: [usize;3],
-    gate_index: u8,
-    gate_lfsr: LFSR16,
-    wire_lfsr: LFSR16,
-}
-
-impl<const NUMBER_OF_WIRES: usize> SearchLayer<NUMBER_OF_WIRES> {
-    pub fn new(gate_seed: u16, wire_seed: u16) -> Self {
-         
-        Self {
-            }
-    }
-
-    pub fn get_config(&self) -> usize {
-        let mut bit_value = BitFeild::new(vec![
-            ("aSelect", 4),
-            ("bSelect", 4),
-            ("cSelect", 4),
-            ("gateSelect", 4),
-        ]);
-        // setting the wire selections
-        bit_value.set("aSelect", self.permutation_index[0] as usize);
-        bit_value.set("bSelect", self.permutation_index[1] as usize);
-        bit_value.set("cSelect", self.permutation_index[2] as usize);
-        // setting the gate values
-        bit_value.set("gateSelect", self.gate_index as usize);
-        bit_value.value()
-    }
-}
+/////////////////////////////////////////////////////////////////
+// Reference modules
+/////////////////////////////////////////////////////////////////
 
 #[derive(Debug)]
-pub struct GateLayer<const NUMBER_OF_WIRES: usize> {
+pub struct Gate<const NUMBER_OF_WIRES: usize> {
     wire_choices: [u8; 3],
     passthrough: bool,
     func: Base2GateControlFunc,
 }
 
-impl<const NUMBER_OF_WIRES: usize> GateLayer<NUMBER_OF_WIRES> {
+impl<const NUMBER_OF_WIRES: usize> Gate<NUMBER_OF_WIRES> {
     pub fn new(wire_choices: [u8; 3], passthrough: bool, func: Base2GateControlFunc) -> Self {
         Self {
             wire_choices,
@@ -101,7 +76,7 @@ impl<const NUMBER_OF_WIRES: usize> GateLayer<NUMBER_OF_WIRES> {
     }
 }
 
-impl<const NUMBER_OF_WIRES: usize> Layer<NUMBER_OF_WIRES> for GateLayer<NUMBER_OF_WIRES> {
+impl<const NUMBER_OF_WIRES: usize> Layer<NUMBER_OF_WIRES> for Gate<NUMBER_OF_WIRES> {
     type Items = bool;
     fn evaluate(&self, values: [Self::Items; NUMBER_OF_WIRES]) -> [Self::Items; NUMBER_OF_WIRES] {
         let mut out = values;
@@ -117,13 +92,13 @@ impl<const NUMBER_OF_WIRES: usize> Layer<NUMBER_OF_WIRES> for GateLayer<NUMBER_O
 }
 
 pub struct ReferenceCircuit<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize> {
-    gates: [GateLayer<NUMBER_OF_WIRES>; NUMBER_OF_STAGES],
+    gates: [Gate<NUMBER_OF_WIRES>; NUMBER_OF_STAGES],
 }
 
 impl<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize>
     ReferenceCircuit<NUMBER_OF_WIRES, NUMBER_OF_STAGES>
 {
-    pub fn new(gates: [GateLayer<NUMBER_OF_WIRES>; NUMBER_OF_STAGES]) -> Self {
+    pub fn new(gates: [Gate<NUMBER_OF_WIRES>; NUMBER_OF_STAGES]) -> Self {
         Self { gates }
     }
 
@@ -149,6 +124,113 @@ impl<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize> Layer<NUMBER_O
     }
 }
 
+/////////////////////////////////////////////////////////////////
+// Search modules
+/////////////////////////////////////////////////////////////////
+
+#[derive(Debug)]
+pub struct SearchGate<const NUMBER_OF_WIRES: usize> {
+    wire_permutations: Vec<[usize; 3]>,
+    wire_choices: [usize;3],
+    func: Base2GateControlFunc,
+    gate_seed: u16,
+    wire_seed: u16,
+    gate_lfsr: LFSR16,
+    wire_lfsr: LFSR16,
+}
+
+impl<const NUMBER_OF_WIRES: usize> SearchGate<NUMBER_OF_WIRES> {
+    pub fn new(gate_seed: u16, wire_seed: u16) -> Self {
+         
+        Self {
+            wire_permutations: get_wire_permutations::<NUMBER_OF_WIRES>(),
+            wire_choices: [0;3],
+            func:Base2GateControlFunc::from_u8(0),
+            gate_seed: gate_seed,
+            wire_seed: wire_seed,
+            gate_lfsr: LFSR16::new(gate_seed, 1 << 16),
+            wire_lfsr: LFSR16::new(wire_seed, 1 << 16),
+        }
+    }
+
+    pub fn sample(&mut self) {
+        let perm_size = bits(n_p_3(NUMBER_OF_WIRES));
+        let permutation_mask = (1<<perm_size) - 1;
+        let permutation_index = (self.wire_lfsr.next().unwrap() & permutation_mask) as usize  % self.wire_permutations.len();
+        let gate_index = self.gate_lfsr.next().unwrap() % 256; 
+        self.wire_choices = self.wire_permutations[permutation_index];
+        self.func = Base2GateControlFunc::from_u8(gate_index as u8)
+    }
+
+    pub fn get_config(&self) -> usize {
+        let mut bit_value = BitFeild::new(vec![
+            ("gateSeed", 16),
+            ("wireSelectionSeed", 16),
+        ]);
+        // setting the wire selections
+        bit_value.set("wireSelectionSeed", self.wire_seed as usize);
+        // setting the gate values
+        bit_value.set("gateSeed", self.gate_seed as usize);
+        bit_value.value()
+    }
+}
+
+impl<const NUMBER_OF_WIRES: usize> Layer<NUMBER_OF_WIRES> for SearchGate<NUMBER_OF_WIRES> {
+    type Items = bool;
+    fn evaluate(&self, values: [Self::Items; NUMBER_OF_WIRES]) -> [Self::Items; NUMBER_OF_WIRES] {
+        let mut out = values;
+        out[self.wire_choices[2] as usize] = self.func.evaluate(
+            values[self.wire_choices[0] as usize],
+            values[self.wire_choices[1] as usize],
+            values[self.wire_choices[2] as usize],
+        );
+        out
+    }
+}
+
+pub struct SearchCircuit<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize> {
+    gates: [SearchGate<NUMBER_OF_WIRES>; NUMBER_OF_STAGES],
+}
+
+impl<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize>
+    SearchCircuit<NUMBER_OF_WIRES, NUMBER_OF_STAGES>
+{
+    pub fn new(gates: [SearchGate<NUMBER_OF_WIRES>; NUMBER_OF_STAGES]) -> Self {
+        Self { gates }
+    }
+
+    pub fn sample(&mut self) {
+        for i in 0..NUMBER_OF_STAGES {
+            self.gates[i].sample()
+        }
+    }
+
+    pub fn get_config(&self) -> [usize; NUMBER_OF_STAGES] {
+        let mut configs = [0; NUMBER_OF_STAGES];
+        for i in 0..NUMBER_OF_STAGES {
+            configs[i] = self.gates[i].get_config()
+        }
+        configs
+    }
+}
+
+impl<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize> Layer<NUMBER_OF_WIRES>
+    for SearchCircuit<NUMBER_OF_WIRES, NUMBER_OF_STAGES>
+{
+    type Items = bool;
+    fn evaluate(&self, values: [Self::Items; NUMBER_OF_WIRES]) -> [Self::Items; NUMBER_OF_WIRES] {
+        let mut out = values;
+        for i in 0..NUMBER_OF_STAGES {
+            out = self.gates[i].evaluate(out)
+        }
+        out
+    }
+}
+
+/////////////////////////////////////////////////////////////////
+// tests
+/////////////////////////////////////////////////////////////////
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -158,8 +240,11 @@ mod tests {
     fn wire_permutations() {
         const NUMBER_OF_WIRES: usize = 13;
         const PERMUTATION_SIZE: usize = n_p_3(NUMBER_OF_WIRES);
-        let perms = get_wire_permutations::<NUMBER_OF_WIRES, PERMUTATION_SIZE>();
-        let set = HashSet::from(perms);
+        let perms = get_wire_permutations::<NUMBER_OF_WIRES>();
+        let mut set = HashSet::new();
+        for i in perms{
+            set.insert(i);
+        }
         assert_eq!(set.len(), PERMUTATION_SIZE)
     }
 }

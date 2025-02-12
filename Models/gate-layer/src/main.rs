@@ -3,7 +3,7 @@ use std::{env, usize};
 use utilities::{write_file, Layer};
 
 use utilities::gate_internals::{Base2GateControlFunc, get_bool_vector, get_value_from_bool_vector};
-use utilities::stages::GateLayer;
+use utilities::stages::Gate;
 
 fn main() {
     let args = env::args().collect::<Vec<_>>();
@@ -27,7 +27,7 @@ fn main() {
         .collect::<Vec<_>>()
         .join("\n");
 
-    let g: GateLayer<BIT_WIDTH> = GateLayer::new(
+    let g: Gate<BIT_WIDTH> = Gate::new(
         [a_wire, b_wire, c_wire],
         false,
         Base2GateControlFunc::from_u8(9)
