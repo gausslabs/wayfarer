@@ -8,11 +8,11 @@ use super::*;
 // utilities
 /////////////////////////////////////////////////////////////////
 
-pub fn byte_vector_from(value: usize, number_of_bytes: usize) -> Vec<u8>{
+pub fn byte_vector_from(value: usize, number_of_bytes: usize) -> Vec<u8> {
     let mut store = vec![];
-    let byte_mask: usize = (1<< 8) - 1;
+    let byte_mask: usize = (1 << 8) - 1;
     for i in 0..number_of_bytes {
-        let v= (value >> (8 * i)) & byte_mask;
+        let v = (value >> (8 * i)) & byte_mask;
         store.push(v as u8);
     }
     store
@@ -51,7 +51,7 @@ pub fn get_wire_permutations<const NUMBER_OF_WIRES: usize>() -> Vec<[usize; 3]> 
 /////////////////////////////////////////////////////////////////
 // Reference modules
 /////////////////////////////////////////////////////////////////
-
+const REFERENCE_BYTES_IN_CONFIG: usize = 2;
 #[derive(Debug)]
 pub struct Gate<const NUMBER_OF_WIRES: usize> {
     wire_choices: [u8; 3],
@@ -85,8 +85,7 @@ impl<const NUMBER_OF_WIRES: usize> Gate<NUMBER_OF_WIRES> {
     }
 
     pub fn get_config_as_bytes(&self) -> Vec<u8> {
-        const BYTE_IN_CONFIG: usize = 2;
-        byte_vector_from(self.get_config(), BYTE_IN_CONFIG)
+        byte_vector_from(self.get_config(), REFERENCE_BYTES_IN_CONFIG)
     }
 }
 
@@ -116,10 +115,23 @@ impl<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize>
         Self { gates }
     }
 
-    pub fn get_config(&self) -> [usize; NUMBER_OF_STAGES] {
-        let mut configs = [0; NUMBER_OF_STAGES];
-        for i in 0..NUMBER_OF_STAGES {
-            configs[i] = self.gates[i].get_config()
+    pub fn get_config(&self) -> Vec<usize> {
+        // Setting up the bitfeild
+        let mut bit_value = BitFeild::new(vec![
+            ("data", 8),
+            ("id", bits(NUMBER_OF_STAGES) as u8),
+            ("configType", 1),
+        ]);
+
+        // setting config type to REFERENCE
+        bit_value.set("configType", 0);
+
+        // Iterating over the gates config and adding the agent config
+        let mut configs = vec![];
+        for (i, val) in self.get_config_as_bytes().iter().enumerate() {
+            bit_value.set("id", (i / REFERENCE_BYTES_IN_CONFIG) as usize);
+            bit_value.set("data", *val as usize);
+            configs.push(bit_value.value());
         }
         configs
     }
@@ -149,7 +161,7 @@ impl<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize> Layer<NUMBER_O
 /////////////////////////////////////////////////////////////////
 // Search modules
 /////////////////////////////////////////////////////////////////
-
+const SEARCH_BYTES_IN_CONFIG: usize = 4;
 #[derive(Debug)]
 pub struct SearchGate<const NUMBER_OF_WIRES: usize> {
     wire_permutations: Vec<[usize; 3]>,
@@ -181,7 +193,7 @@ impl<const NUMBER_OF_WIRES: usize> SearchGate<NUMBER_OF_WIRES> {
             % self.wire_permutations.len();
         let gate_index = self.gate_lfsr.next().unwrap() % 256;
         self.wire_choices = self.wire_permutations[permutation_index];
-        self.func = Base2GateControlFunc::from_u8(gate_index as u8)
+        self.func = Base2GateControlFunc::from_u8((gate_index % 16) as u8)
     }
 
     pub fn get_config(&self) -> usize {
@@ -194,8 +206,7 @@ impl<const NUMBER_OF_WIRES: usize> SearchGate<NUMBER_OF_WIRES> {
     }
 
     pub fn get_config_as_bytes(&self) -> Vec<u8> {
-        const BYTE_IN_CONFIG: usize = 4;
-        byte_vector_from(self.get_config(), BYTE_IN_CONFIG)
+        byte_vector_from(self.get_config(), SEARCH_BYTES_IN_CONFIG)
     }
 }
 
@@ -229,10 +240,23 @@ impl<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize>
         }
     }
 
-    pub fn get_config(&self) -> [usize; NUMBER_OF_STAGES] {
-        let mut configs = [0; NUMBER_OF_STAGES];
-        for i in 0..NUMBER_OF_STAGES {
-            configs[i] = self.gates[i].get_config()
+    pub fn get_config(&self) -> Vec<usize> {
+        // Setting up the bitfeild
+        let mut bit_value = BitFeild::new(vec![
+            ("data", 8),
+            ("id", bits(NUMBER_OF_STAGES) as u8),
+            ("configType", 1),
+        ]);
+
+        // setting config type to SEARCH
+        bit_value.set("configType", 1);
+
+        // Iterating over the gates config and adding the agent config
+        let mut configs = vec![];
+        for (i, val) in self.get_config_as_bytes().iter().enumerate() {
+            bit_value.set("id", (i / SEARCH_BYTES_IN_CONFIG) as usize);
+            bit_value.set("data", *val as usize);
+            configs.push(bit_value.value());
         }
         configs
     }

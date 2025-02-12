@@ -32,6 +32,8 @@ typedef struct packed {
     logic [CONFIG_DATA_WIDTH - 1:0] data;
 } StreamData;
 
+localparam STREAM_DATA_WIDTH = $bits(StreamData);
+
 endpackage
 
 
