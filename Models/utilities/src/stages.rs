@@ -1,4 +1,5 @@
 use crate::bitfield::BitFeild;
+use crate::lfsrs::LFSR16;
 
 use super::gate_internals::Base2GateControlFunc;
 use super::*;
@@ -7,6 +8,8 @@ pub const fn n_p_3(size: usize) -> usize {
     size * (size - 1) * (size - 2)
 }
 
+// TODO:
+// Make it a const func without clone and for loops.
 pub fn get_wire_permutations<const NUMBER_OF_WIRES: usize, const PERMUTATION_SIZE: usize>(
 ) -> [[usize; 3]; PERMUTATION_SIZE] {
     let mut all = [[0; 3]; PERMUTATION_SIZE];
@@ -30,6 +33,39 @@ pub fn get_wire_permutations<const NUMBER_OF_WIRES: usize, const PERMUTATION_SIZ
         }
     }
     all
+}
+
+#[derive(Debug)]
+pub struct SearchLayer<const NUMBER_OF_WIRES: usize> {
+    wire_permutations: Vec<[u8; 3]>,
+    permutation_index: [usize;3],
+    gate_index: u8,
+    gate_lfsr: LFSR16,
+    wire_lfsr: LFSR16,
+}
+
+impl<const NUMBER_OF_WIRES: usize> SearchLayer<NUMBER_OF_WIRES> {
+    pub fn new(gate_seed: u16, wire_seed: u16) -> Self {
+         
+        Self {
+            }
+    }
+
+    pub fn get_config(&self) -> usize {
+        let mut bit_value = BitFeild::new(vec![
+            ("aSelect", 4),
+            ("bSelect", 4),
+            ("cSelect", 4),
+            ("gateSelect", 4),
+        ]);
+        // setting the wire selections
+        bit_value.set("aSelect", self.permutation_index[0] as usize);
+        bit_value.set("bSelect", self.permutation_index[1] as usize);
+        bit_value.set("cSelect", self.permutation_index[2] as usize);
+        // setting the gate values
+        bit_value.set("gateSelect", self.gate_index as usize);
+        bit_value.value()
+    }
 }
 
 #[derive(Debug)]
@@ -80,12 +116,12 @@ impl<const NUMBER_OF_WIRES: usize> Layer<NUMBER_OF_WIRES> for GateLayer<NUMBER_O
     }
 }
 
-pub struct Stages<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize> {
+pub struct ReferenceCircuit<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize> {
     gates: [GateLayer<NUMBER_OF_WIRES>; NUMBER_OF_STAGES],
 }
 
 impl<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize>
-    Stages<NUMBER_OF_WIRES, NUMBER_OF_STAGES>
+    ReferenceCircuit<NUMBER_OF_WIRES, NUMBER_OF_STAGES>
 {
     pub fn new(gates: [GateLayer<NUMBER_OF_WIRES>; NUMBER_OF_STAGES]) -> Self {
         Self { gates }
@@ -101,7 +137,7 @@ impl<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize>
 }
 
 impl<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize> Layer<NUMBER_OF_WIRES>
-    for Stages<NUMBER_OF_WIRES, NUMBER_OF_STAGES>
+    for ReferenceCircuit<NUMBER_OF_WIRES, NUMBER_OF_STAGES>
 {
     type Items = bool;
     fn evaluate(&self, values: [Self::Items; NUMBER_OF_WIRES]) -> [Self::Items; NUMBER_OF_WIRES] {
