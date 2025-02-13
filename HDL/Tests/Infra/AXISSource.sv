@@ -7,6 +7,7 @@ module AXISSource #(
   parameter DATA_WIDTH = 32,
   parameter ADDR_WIDTH = 10,
   parameter LIMIT      = (1<<ADDR_WIDTH),
+  parameter TOGGLE_VALID = 0,
   parameter SOURCE_FILE = "source.hex"
 ) (
   input wire clk,
@@ -17,6 +18,7 @@ module AXISSource #(
 ///////////////////////////////////////////////////////////////////////
 // Load the file into memory
 ///////////////////////////////////////////////////////////////////////
+logic toggle;
 localparam MEMORY_WIDTH = (1<<ADDR_WIDTH) - 1;
 localparam KEEP_WIDTH = (DATA_WIDTH + 7)/8;
 logic [DATA_WIDTH - 1:0] data [MEMORY_WIDTH - 1:0];
@@ -44,9 +46,24 @@ end
 end
 
 ///////////////////////////////////////////////////////////////////////
+// Toggle control
+///////////////////////////////////////////////////////////////////////
+if (TOGGLE_VALID == 1)
+begin
+  always_ff @ (posedge clk)
+  begin
+  toggle = $random();
+  end
+end
+else
+begin
+  assign toggle = 1;
+end
+
+///////////////////////////////////////////////////////////////////////
 // sending the data out
 ///////////////////////////////////////////////////////////////////////
-  assign out.valid = (read_pointer <= (LIMIT - 1)) & resetn;
+  assign out.valid = (read_pointer <= (LIMIT - 1)) & resetn & toggle;
   assign out.data  = data[read_pointer];
   assign out.last  = (read_pointer == (LIMIT - 1));
   assign out.keep  = ((1 << KEEP_WIDTH) - 1);

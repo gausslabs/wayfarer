@@ -10,3 +10,4 @@ xsim.dir/
 *.vcd
 *.hex
 target/
+*_proj/

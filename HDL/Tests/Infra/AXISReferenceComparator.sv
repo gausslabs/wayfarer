@@ -8,6 +8,7 @@ module AXISReferenceComparator #(
   parameter ADDR_WIDTH  = 10,
   parameter LIMIT       = (1<<ADDR_WIDTH),
   parameter NAME        = "out",
+  parameter TOGGLE_READY= 0,
   parameter SOURCE_FILE = "source.hex"
 ) (
   input wire clk,
@@ -37,6 +38,7 @@ AXISSource #(
 ///////////////////////////////////////////////////////////////////////
 
 AXISComparator #(
+  .TOGGLE_READY(TOGGLE_READY),
   .NAME(NAME)
 ) comparator (
   .clk   (clk      ),

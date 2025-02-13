@@ -3,6 +3,7 @@
 
 
 module AXISComparator #(
+  parameter TOGGLE_READY = 0, 
   parameter NAME = "out"
 )(
   input wire clk,
@@ -11,18 +12,35 @@ module AXISComparator #(
   AXI4S.Slave in2,
   output logic equal
 );
+logic toggle;
 ///////////////////////////////////////////////////////////////////////
 // comparing the data
 ///////////////////////////////////////////////////////////////////////
-assign in1.ready = in2.valid;
-assign in2.ready = in1.valid;
+assign in1.ready = in2.valid & toggle;
+assign in2.ready = in1.valid & toggle;
+
+///////////////////////////////////////////////////////////////////////
+// Toggle control
+///////////////////////////////////////////////////////////////////////
+if (TOGGLE_READY == 1)
+begin
+  always_ff @ (posedge clk)
+  begin
+  toggle = $random();
+  end
+end
+else
+begin
+  assign toggle = 1;
+end
+
 
 logic _equal;
 always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
-  if (in1.valid & in2.valid)
+  if (in1.valid & in2.valid & toggle)
   begin
     if(in1.data == in2.data)
         _equal <= _equal & 1;

@@ -1,7 +1,7 @@
 `ifndef FIFO_TB
  `define FIFO_TB
 
-`include "AXISFIFO.sv"
+//`include "AXISFIFO.sv"
 
 module FIFO_TB ();
 
@@ -10,7 +10,8 @@ localparam DATA_WIDTH = 16;
 AXI4S #(.DATA_WIDTH(DATA_WIDTH)) fifoOut(), in();
 
 AXISFIFO #(
-    .DATA_WIDTH(DATA_WIDTH)
+    .DATA_WIDTH(DATA_WIDTH),
+    .MODE(FIFOPkg::DATA_AND_LAST)
 ) dut (
   .clk(clk),
   .resetn(resetn),
@@ -27,6 +28,7 @@ AXISSource #(
   .DATA_WIDTH(DATA_WIDTH),
   .ADDR_WIDTH(ADDR_WIDTH),
   .LIMIT(LIMIT),
+  .TOGGLE_VALID(1),
   .SOURCE_FILE(SOURCE_FILE)
 ) source (
   .clk(clk),
@@ -38,6 +40,7 @@ AXISReferenceComparator #(
   .DATA_WIDTH(DATA_WIDTH),
   .ADDR_WIDTH(ADDR_WIDTH),
   .LIMIT(LIMIT),
+  .TOGGLE_READY(1),
   .SOURCE_FILE(SOURCE_FILE)
 ) comparator (
   .clk(clk),
@@ -78,7 +81,7 @@ begin
 
   #10 resetn = 1;
 
-  #2000;
+  #50000;
   $display("Test Passed!!");
   $finish();
 end
