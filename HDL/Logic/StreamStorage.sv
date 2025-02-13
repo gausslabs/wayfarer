@@ -10,7 +10,7 @@ module ReferenceStorage #(
 ) (
   input wire           clk,
   input wire           resetn,
-  output logic         validOut [NUMBER_OF_STAGES - 1:0],
+  output logic [NUMBER_OF_STAGES - 1:0]  validOut,
   output type_of_store out [NUMBER_OF_STAGES - 1:0],
   AXI4S.Slave          in
 );
@@ -53,7 +53,7 @@ case (current_state)
     CLEAR_CONFIG:
         next_state = PROCESS_INPUT;
     PROCESS_INPUT:
-        next_state = (de_mux_stream[NUMBER_OF_STAGES - 1].last & de_mux_stream[NUMBER_OF_STAGES - 1].last) ? WAITING : PROCESS_INPUT;
+        next_state = (de_mux_stream[NUMBER_OF_STAGES - 1].valid & de_mux_stream[NUMBER_OF_STAGES - 1].last) ? WAITING : PROCESS_INPUT;
     default: begin
         next_state = WAITING;
     end

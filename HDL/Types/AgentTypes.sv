@@ -6,6 +6,7 @@ localparam NUMBER_OF_STAGES = 6;
 localparam STAGES_ID_WIDTH = $clog2(NUMBER_OF_STAGES);
 localparam DATA_WIDTH = 8;
 localparam NUMBER_OF_INPUT_WIRES = 4;
+localparam CHOICE_WIDTH = $clog2(NUMBER_OF_INPUT_WIRES);
 
 localparam GATE_CONFIG_SIZE = 4 * 4;
 localparam GATE_CONFIG_IN_STREAM = (GATE_CONFIG_SIZE + (DATA_WIDTH - 1)) / DATA_WIDTH;
