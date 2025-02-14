@@ -65,6 +65,7 @@ end
 ///////////////////////////////////////////////////////////////// 
 AXISFIFO #(
   .DATA_WIDTH(DATA_WIDTH),
+  .MODE(FIFOPkg::DATA_AND_LAST),
   .STORE_SIZE(8)
 )buffer(
   .clk(clk),
@@ -73,18 +74,9 @@ AXISFIFO #(
   .in(in) 
 );
 
-always_ff @ (posedge clk)
-begin
-if(resetn)
-begin
-  if (internal.valid)
-    in_data <= internal.data;
-end
-else
-begin
-  in_data <= 0;
-end
-end
+
+assign in_data = internal.data;
+
 
 /////////////////////////////////////////////////////////////////
 // de-mux

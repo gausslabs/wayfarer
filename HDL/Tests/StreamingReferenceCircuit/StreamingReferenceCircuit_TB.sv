@@ -1,6 +1,6 @@
 module ReferenceCircuit_TB ();
 
-logic clk, resetn, test_pass, equal_source, equal_gate;
+logic clk, resetn, test_pass, equal_ref, equal_gate;
 
 AXI4S #(.DATA_WIDTH($bits(AgentPkg::NUMBER_OF_INPUT_WIRES)))   source(), in(), passThroughIn(), passThroughOut(), out();
 AXI4S #(.DATA_WIDTH($bits(StreamSelectionPkg::AgentConfig))) configuration();
@@ -79,7 +79,7 @@ AXISReferenceComparator #(
   .clk(clk),
   .resetn(resetn),
   .test_pass(equal_ref),
-  .in(out) 
+  .in(passThroughOut) 
 );
 
 AXISReferenceComparator #(
@@ -92,7 +92,7 @@ AXISReferenceComparator #(
   .clk(clk),
   .resetn(resetn),
   .test_pass(equal_gate),
-  .in(passThroughOut) 
+  .in(out) 
 );
 
 assign test_pass = equal_gate & equal_ref;

@@ -95,7 +95,7 @@ begin
 end
 end
 
-assign in.ready = out.ready;
+assign in.ready = out.ready & resetn;
 
 endmodule
 

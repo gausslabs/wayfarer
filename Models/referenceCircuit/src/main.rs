@@ -1,5 +1,5 @@
 use rand::Rng;
-use std::{env, usize};
+use std::{collections::HashSet, env, usize};
 use utilities::{
     gate_internals::{get_bool_vector, Base2GateControlFunc},
     stages::{Gate, ReferenceCircuit},
@@ -23,20 +23,37 @@ fn main() {
     };
     const NUMBER_OF_WIRES: usize = 4;
     const NUMBER_OF_GATES: usize = 6;
+    const PASSTHROUGH: bool = false;
     let mut rng = rand::thread_rng();
     //////////////////////////////////////////////////////////////////////////
     // Creating the reference gates
     //////////////////////////////////////////////////////////////////////////
     let mut ref_gates = vec![];
-    for _i in 0..NUMBER_OF_GATES {
-        let a_wire = rng.gen_range(0..NUMBER_OF_WIRES);
-        let b_wire = rng.gen_range(0..NUMBER_OF_WIRES);
-        let c_wire = rng.gen_range(0..NUMBER_OF_WIRES);
+    for i in 0..NUMBER_OF_GATES {
+        let mut a_wire = 0;
+        let mut b_wire = 0;
+        let mut c_wire = 0;
+        if PASSTHROUGH {
+            a_wire = i ;
+            b_wire = i ;
+            c_wire = i ;
+        } else {
+            let mut set = HashSet::new();
+            while set.len() < 3 {
+                set.insert(rng.gen_range(0..NUMBER_OF_WIRES));
+            }
+            let values = set.iter().map(|x| *x).collect::<Vec<usize>>();
+            println!("The values are {:?}", values);
+            a_wire =  values[0];
+            b_wire =  values[1];
+            c_wire =  values[2];
+        }
+        println!("The wires are {:?}", [a_wire, b_wire, c_wire]);
         let operation = rng.gen_range(0..=15);
 
         let g: Gate<NUMBER_OF_WIRES> = Gate::new(
             [a_wire as u8, b_wire as u8, c_wire as u8],
-            false,
+            a_wire == b_wire,
             Base2GateControlFunc::from_u8(operation as u8),
         );
         ref_gates.push(g);

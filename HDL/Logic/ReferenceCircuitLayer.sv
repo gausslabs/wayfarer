@@ -1,6 +1,8 @@
 `ifndef REFERENCE_LAYER
  `define REFERENCE_LAYER
 
+`default_nettype none
+
 module ReferenceCircuitLayer #(
   type type_of_store = AgentPkg::GateConfigStore,
   type input_config_type = StreamSelectionPkg::AgentConfig,
@@ -26,8 +28,8 @@ module ReferenceCircuitLayer #(
 type_of_store configs [NUMBER_OF_STAGES - 1:0];
 logic [NUMBER_OF_STAGES - 1:0] packed_valids;
 
-AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) gate_in[NUMBER_OF_STAGES - 1:0](), gate_out[NUMBER_OF_STAGES - 1:0]();
-AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) pass_through_in[NUMBER_OF_STAGES - 1:0](), pass_through_out[NUMBER_OF_STAGES - 1:0]();
+AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) gate_internal[NUMBER_OF_STAGES:0]();
+AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) passThrough[NUMBER_OF_STAGES:0]();
 
 /////////////////////////////////////////////////////////////////
 // configurations
@@ -55,14 +57,14 @@ assign loaded = &packed_valids;
 Passthrough connect_in_and_gate (
   .clk(clk),
   .resetn(resetn & start),
-  .out(gate_in[0]),
+  .out(gate_internal[0]),
   .in(in)
 );
 
 Passthrough connect_passthrough_in (
   .clk(clk),
   .resetn(resetn & start),
-  .out(pass_through_in[0]),
+  .out(passThrough[0]),
   .in(passThroughIn)
 );
 
@@ -70,14 +72,14 @@ Passthrough connect_passthrough_out (
   .clk(clk),
   .resetn(resetn & start),
   .out(passThroughOut),
-  .in(pass_through_out[NUMBER_OF_STAGES - 1])
+  .in(passThrough[NUMBER_OF_STAGES])
 );
 
 Passthrough connect_gate_and_out (
   .clk(clk),
   .resetn(resetn & start),
   .out(out),
-  .in(gate_out[NUMBER_OF_STAGES - 1])
+  .in(gate_internal[NUMBER_OF_STAGES])
 );
 
 /////////////////////////////////////////////////////////////////
@@ -97,10 +99,10 @@ StreamingGate #(
   .aSelect(configs[i].configValue.aSelect),
   .bSelect(configs[i].configValue.bSelect),
   .cSelect(configs[i].configValue.cSelect),
-  .in(gate_in[i]),
-  .passThroughIn(pass_through_in[i]),
-  .passThroughOut(pass_through_out[i]),
-  .out(gate_out[i])
+  .in(gate_internal[i]),
+  .passThroughIn(passThrough[i]),
+  .passThroughOut(passThrough[i + 1]),
+  .out(gate_internal[i + 1])
 );
 end
 endmodule

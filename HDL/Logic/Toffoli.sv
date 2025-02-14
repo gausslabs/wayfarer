@@ -17,7 +17,7 @@ always_comb
 begin
   case (gateChoice)
     4'd0:
-      func = 1;
+      func = 0;
     4'd1:
       func = a & b;
     4'd2:
@@ -47,10 +47,10 @@ begin
     4'd14:
       func = ~(a & b);
     4'd15:
-      func = 0;
+      func = 1;
     
     default: begin
-      func = 1;
+      func = 0;
     end
   endcase
 end

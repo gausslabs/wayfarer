@@ -1,6 +1,8 @@
 `ifndef AXIS_FIFO
  `define AXIS_FIFO
 
+`default_nettype none
+
 package FIFOPkg;
 
 typedef enum logic { 
