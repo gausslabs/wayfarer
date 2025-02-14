@@ -1,293 +1,67 @@
 `ifndef SAFEPERMUTATIONGENERATOR_SV
   `define SAFEPERMUTATIONGENERATOR_SV
 
+package PermutationPkg;
+
+typedef enum logic [1:0] { 
+  WIRES_05,
+  WIRES_11,
+  WIRES_13
+ } SafePermutaions;
+
+ function int permutaion_bit_width (input SafePermutaions s);
+  case (s)
+    WIRES_05:
+       permutaion_bit_width = $clog2(5*4*3);
+    WIRES_11:
+       permutaion_bit_width = $clog2(11*10*9);
+    WIRES_13:
+       permutaion_bit_width = $clog2(13*12*11);
+  endcase
+ endfunction
+
+  function int port_bit_width (input SafePermutaions s);
+  case (s)
+    WIRES_05:
+       permutaion_bit_width = $clog2(5);
+    WIRES_11:
+       permutaion_bit_width = $clog2(11);
+    WIRES_13:
+       permutaion_bit_width = $clog2(13);
+  endcase
+ endfunction
+
+endpackage
+
 module SafePermutationGenerator #(
-  parameter PERM_SIZE = 5,
-  parameter PORT_SIZE = 2
+  parameter PermutationPkg::SafePermutaions PERMUTATION_TYPE = PermutationPkg::WIRES_13,
+  parameter PERM_SIZE = permutaion_bit_width(PERMUTATION_TYPE),
+  parameter PORT_SIZE = port_bit_width(PERMUTATION_TYPE)
 ) (
   input wire [PERM_SIZE - 1:0] selection,
   output logic [PORT_SIZE- 1:0] [2:0] permutation
 );
 
-always_comb
+if (PERMUTATION_TYPE == PermutationPkg::WIRES_13)
 begin
-case(selection)
-
-  5'd0:
-  begin
-    
-    permutation[0] = 2'd3;
-    
-    permutation[1] = 2'd0;
-    
-    permutation[2] = 2'd1;
-    
-  end
-
-  5'd1:
-  begin
-    
-    permutation[0] = 2'd3;
-    
-    permutation[1] = 2'd0;
-    
-    permutation[2] = 2'd2;
-    
-  end
-
-  5'd2:
-  begin
-    
-    permutation[0] = 2'd3;
-    
-    permutation[1] = 2'd1;
-    
-    permutation[2] = 2'd0;
-    
-  end
-
-  5'd3:
-  begin
-    
-    permutation[0] = 2'd3;
-    
-    permutation[1] = 2'd1;
-    
-    permutation[2] = 2'd2;
-    
-  end
-
-  5'd4:
-  begin
-    
-    permutation[0] = 2'd3;
-    
-    permutation[1] = 2'd2;
-    
-    permutation[2] = 2'd0;
-    
-  end
-
-  5'd5:
-  begin
-    
-    permutation[0] = 2'd3;
-    
-    permutation[1] = 2'd2;
-    
-    permutation[2] = 2'd1;
-    
-  end
-
-  5'd6:
-  begin
-    
-    permutation[0] = 2'd2;
-    
-    permutation[1] = 2'd0;
-    
-    permutation[2] = 2'd1;
-    
-  end
-
-  5'd7:
-  begin
-    
-    permutation[0] = 2'd2;
-    
-    permutation[1] = 2'd0;
-    
-    permutation[2] = 2'd3;
-    
-  end
-
-  5'd8:
-  begin
-    
-    permutation[0] = 2'd2;
-    
-    permutation[1] = 2'd1;
-    
-    permutation[2] = 2'd0;
-    
-  end
-
-  5'd9:
-  begin
-    
-    permutation[0] = 2'd2;
-    
-    permutation[1] = 2'd1;
-    
-    permutation[2] = 2'd3;
-    
-  end
-
-  5'd10:
-  begin
-    
-    permutation[0] = 2'd2;
-    
-    permutation[1] = 2'd3;
-    
-    permutation[2] = 2'd0;
-    
-  end
-
-  5'd11:
-  begin
-    
-    permutation[0] = 2'd2;
-    
-    permutation[1] = 2'd3;
-    
-    permutation[2] = 2'd1;
-    
-  end
-
-  5'd12:
-  begin
-    
-    permutation[0] = 2'd1;
-    
-    permutation[1] = 2'd0;
-    
-    permutation[2] = 2'd2;
-    
-  end
-
-  5'd13:
-  begin
-    
-    permutation[0] = 2'd1;
-    
-    permutation[1] = 2'd0;
-    
-    permutation[2] = 2'd3;
-    
-  end
-
-  5'd14:
-  begin
-    
-    permutation[0] = 2'd1;
-    
-    permutation[1] = 2'd2;
-    
-    permutation[2] = 2'd0;
-    
-  end
-
-  5'd15:
-  begin
-    
-    permutation[0] = 2'd1;
-    
-    permutation[1] = 2'd2;
-    
-    permutation[2] = 2'd3;
-    
-  end
-
-  5'd16:
-  begin
-    
-    permutation[0] = 2'd1;
-    
-    permutation[1] = 2'd3;
-    
-    permutation[2] = 2'd0;
-    
-  end
-
-  5'd17:
-  begin
-    
-    permutation[0] = 2'd1;
-    
-    permutation[1] = 2'd3;
-    
-    permutation[2] = 2'd2;
-    
-  end
-
-  5'd18:
-  begin
-    
-    permutation[0] = 2'd0;
-    
-    permutation[1] = 2'd1;
-    
-    permutation[2] = 2'd2;
-    
-  end
-
-  5'd19:
-  begin
-    
-    permutation[0] = 2'd0;
-    
-    permutation[1] = 2'd1;
-    
-    permutation[2] = 2'd3;
-    
-  end
-
-  5'd20:
-  begin
-    
-    permutation[0] = 2'd0;
-    
-    permutation[1] = 2'd2;
-    
-    permutation[2] = 2'd1;
-    
-  end
-
-  5'd21:
-  begin
-    
-    permutation[0] = 2'd0;
-    
-    permutation[1] = 2'd2;
-    
-    permutation[2] = 2'd3;
-    
-  end
-
-  5'd22:
-  begin
-    
-    permutation[0] = 2'd0;
-    
-    permutation[1] = 2'd3;
-    
-    permutation[2] = 2'd1;
-    
-  end
-
-  5'd23:
-  begin
-    
-    permutation[0] = 2'd0;
-    
-    permutation[1] = 2'd3;
-    
-    permutation[2] = 2'd2;
-    
-  end
-
-  default:
-  begin
-    
-    permutation[0] = 2'd3;
-    
-    permutation[1] = 2'd0;
-    
-    permutation[2] = 2'd1;
-    
-  end
-endcase
+  SafePermutationGenerator13 perm_13 (
+  .selection(selection),
+  .permutation(permutation)
+  );
+end
+else if (PERMUTATION_TYPE == PermutationPkg::WIRES_11) 
+begin
+  SafePermutationGenerator11 perm_11 (
+  .selection(selection),
+  .permutation(permutation)
+  );
+end
+else
+begin
+  SafePermutationGenerator05 perm_05 (
+  .selection(selection),
+  .permutation(permutation)
+  );
 end
 
 endmodule

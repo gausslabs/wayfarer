@@ -1,6 +1,12 @@
 `ifndef {{module_name | upper }}_SV
   `define {{module_name | upper }}_SV
 
+`default_nettype none
+///////////////////////////////////////////////////////////////////////////////////////
+// This is generated code please dont edit this but the emitter
+// This is all the safe permuations for a given number of Total wires.
+///////////////////////////////////////////////////////////////////////////////////////
+
 module {{module_name}} #(
   parameter PERM_SIZE = {{perm_size}},
   parameter PORT_SIZE = {{port_size}}
