@@ -9,7 +9,7 @@ fn get_tap_16(state: u16, n: u16) -> u16 {
 // used this as a reference - https://datacipy.elektroniche.cz/lfsr_table.pdf
 
 ///////////////////////////////////////////////////////////////////////
-// Simple 8 bit LFSR of the polynomial x^16 + x^14 + x^13 + x^11 + 1
+// Simple 16 bit LFSR of the polynomial x^16 + x^14 + x^13 + x^11 + 1
 ///////////////////////////////////////////////////////////////////////
 #[derive(Debug)]
 pub struct LFSR16 {

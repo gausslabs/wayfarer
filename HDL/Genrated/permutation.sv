@@ -9,6 +9,17 @@ typedef enum logic [1:0] {
   WIRES_13
  } SafePermutaions;
 
+ function int number_of_wires (input SafePermutaions s);
+  case (s)
+    WIRES_05:
+       permutaion_bit_width = 5;
+    WIRES_11:
+       permutaion_bit_width = 11;
+    WIRES_13:
+       permutaion_bit_width = 13;
+  endcase
+ endfunction
+
  function int permutaion_bit_width (input SafePermutaions s);
   case (s)
     WIRES_05:
@@ -35,8 +46,8 @@ endpackage
 
 module SafePermutationGenerator #(
   parameter PermutationPkg::SafePermutaions PERMUTATION_TYPE = PermutationPkg::WIRES_13,
-  parameter PERM_SIZE = permutaion_bit_width(PERMUTATION_TYPE),
-  parameter PORT_SIZE = port_bit_width(PERMUTATION_TYPE)
+  parameter PERM_SIZE = PermutationPkg::permutaion_bit_width(PERMUTATION_TYPE),
+  parameter PORT_SIZE = PermutationPkg::port_bit_width(PERMUTATION_TYPE)
 ) (
   input wire [PERM_SIZE - 1:0] selection,
   output logic [PORT_SIZE- 1:0] [2:0] permutation

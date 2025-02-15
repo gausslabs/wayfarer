@@ -1,7 +1,88 @@
 `ifndef LFSR_SV
  `define LFSR_SV
 
-module LFSR (
+package LFSRPkg;
+
+typedef enum logic [1:0] { 
+  LFSR_08,
+  LFSR_16
+} LFSRType;
+
+  function int port_bit_width (input LFSRType l);
+  case (l)
+    LFSR_08:
+       port_bit_width = 8;
+    LFSR_16:
+       port_bit_width = 16;
+  endcase
+ endfunction
+
+endpackage
+
+module LFSR #(
+  parameter LFSRPkg::LFSRType LFSR_TYPE  = LFSRPkg::LFSR_08,
+  parameter DATA_WIDTH = LFSRPkg::port_bit_width(LFSR_TYPE)
+) (
+  input wire clk,
+  input wire resetn,
+  input wire next,
+  input wire [DATA_WIDTH - 1::0] seed,
+  output logic [DATA_WIDTH - 1:0] random_number
+);
+
+if (LFSR_TYPE == LFSRPkg::LFSR_16)
+begin
+LFSR16 lfsr16(
+  .clk(clk),
+  .resetn(resetn),
+  .next(next),
+  .seed(seed),
+  .random_number(random_number)
+);
+end
+else 
+begin
+LFSR8 lfsr8(
+  .clk(clk),
+  .resetn(resetn),
+  .next(next),
+  .seed(seed),
+  .random_number(random_number)
+);
+end
+
+
+endmodule
+
+
+module LFSR16 (
+  input wire clk,
+  input wire resetn,
+  input wire next,
+  input wire [15:0] seed,
+  output logic [15:0] random_number
+);
+
+///////////////////////////////////////////////////////////////////////
+// Simple 16 bit LFSR of the polynomial x^16 + x^14 + x^13 + x^11 + 1
+///////////////////////////////////////////////////////////////////////
+always_ff @ (posedge clk)
+begin
+if(resetn)
+begin
+  if(next)
+    random_number <= {random_number[14:0],(random_number[15] ^ random_number[13] ^ random_number[12] ^ random_number[10])};
+end
+else
+begin
+  random_number <= seed;
+end
+end
+
+
+endmodule
+
+module LFSR8 (
   input wire clk,
   input wire resetn,
   input wire next,
