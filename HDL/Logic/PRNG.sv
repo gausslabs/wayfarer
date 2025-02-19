@@ -1,9 +1,79 @@
 `ifndef PRNG_SV
  `define PRNG_SV
 
+module SimplePRNG #(
+    parameter LFSRPkg::LFSRType LFSR_TYPE  = LFSRPkg::LFSR_08,
+    parameter LFSR_SIZE   = LFSRPkg::port_bit_width(LFSR_TYPE),
+    parameter ENABLE_MODULO = 0,
+    parameter MODULO_VALUE = 8'd24,
+    parameter OUTPUT_SIZE = 4
+) (
+  input wire clk,
+  input wire resetn,
+  input wire next,
+  input wire [LFSR_SIZE - 1:0] seed,
+  output logic valid,
+  output logic [OUTPUT_SIZE - 1:0] randomNumber
+);
+
+initial
+begin
+  output_width_less_than_lfsr_size: assert (OUTPUT_SIZE < LFSR_SIZE)
+    else
+    begin 
+    $error("Assertion output width less than lfsr size failed!");
+    $finish();
+    end
+end
+
+///////////////////////////////////////////////////////////////////////
+// Internal variables
+///////////////////////////////////////////////////////////////////////
+logic [LFSR_SIZE - 1:0] random_number;
+
+///////////////////////////////////////////////////////////////////////
+// ranom number generation
+///////////////////////////////////////////////////////////////////////
+LFSR #(
+  .LFSR_TYPE(LFSR_TYPE)
+) lfsr (
+  .clk           (clk   ),
+  .resetn        (resetn),
+  .next          (next ),
+  .seed         (seed),
+  .random_number(random_number)
+);
+if (ENABLE_MODULO == 1)
+begin
+always_ff @ (posedge clk)
+begin
+if(resetn)
+begin
+  valid <= next;
+  if (random_number > MODULO_VALUE)
+  randomNumber <= random_number - MODULO_VALUE;
+  else
+  randomNumber <= random_number;
+end
+else
+begin
+  valid <= 0;
+  randomNumber <= 0;
+end
+end
+end
+else
+begin
+assign randomNumber = random_number[OUTPUT_SIZE - 1:0];
+assign valid = next;
+end
+
+endmodule
+
 module PRNG #(
-    parameter OUTPUT_SIZE = 4,
-    parameter LFSR_SIZE   = 8
+    parameter LFSRPkg::LFSRType LFSR_TYPE  = LFSRPkg::LFSR_08,
+    parameter LFSR_SIZE   = LFSRPkg::port_bit_width(LFSR_TYPE),
+    parameter OUTPUT_SIZE = 4
 ) (
   input wire clk,
   input wire resetn,
@@ -84,7 +154,9 @@ end
 assign clash = (randomNumber == exclude);
 assign valid = (current_state == SEND) & (~clash);
 
-LFSR lfsr (
+LFSR #(
+  .LFSR_TYPE(LFSR_TYPE)
+) lfsr (
   .clk           (clk   ),
   .resetn        (resetn),
   .next          (next & (current_state == GENRATE) ),

@@ -1,24 +1,6 @@
 `ifndef LFSR_SV
  `define LFSR_SV
 
-package LFSRPkg;
-
-typedef enum logic [1:0] { 
-  LFSR_08,
-  LFSR_16
-} LFSRType;
-
-  function int port_bit_width (input LFSRType l);
-  case (l)
-    LFSR_08:
-       port_bit_width = 8;
-    LFSR_16:
-       port_bit_width = 16;
-  endcase
- endfunction
-
-endpackage
-
 module LFSR #(
   parameter LFSRPkg::LFSRType LFSR_TYPE  = LFSRPkg::LFSR_08,
   parameter DATA_WIDTH = LFSRPkg::port_bit_width(LFSR_TYPE)
@@ -26,7 +8,7 @@ module LFSR #(
   input wire clk,
   input wire resetn,
   input wire next,
-  input wire [DATA_WIDTH - 1::0] seed,
+  input wire [DATA_WIDTH - 1:0] seed,
   output logic [DATA_WIDTH - 1:0] random_number
 );
 

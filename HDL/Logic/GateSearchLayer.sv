@@ -157,60 +157,102 @@ assign readyOut = ready;
 
 endmodule
 
-module GateSearchLayer (
+module SearchGate #(
+  parameter LFSRPkg::LFSRType LFSR_TYPE  = LFSRPkg::LFSR_16,
+  parameter PermutationPkg::SafePermutaions PERMUTATION_TYPE = PermutationPkg::WIRES_13,
+  parameter NUMBER_OF_INPUT_WIRES = PermutationPkg::number_of_wires(PERMUTATION_TYPE),
+  parameter LFSR_SIZE   = LFSRPkg::port_bit_width(LFSR_TYPE)
+) (
   input wire clk,
   input wire resetn,
+  input wire load,
   input wire next,
-  AXI4S.Master out,
-  AXI4S.Slave in 
+  input wire [LFSR_SIZE - 1:0] gateSeed,
+  input wire [LFSR_SIZE - 1:0] wireSeed,
+  output logic dataFlowEnable,
+  AXI4S.Master out,  
+  AXI4S.Master passThroughOut,
+  AXI4S.Slave in, 
+  AXI4S.Slave passThroughIn 
 );
 
 //////////////////////////////////////////////////////////////////
 // internal values
 //////////////////////////////////////////////////////////////////
-parameter LFSR_SIZE   = 8;
-parameter NUMBER_OF_INPUT_WIRES = 5;
-logic [NUMBER_OF_INPUT_WIRES - 1:0] intermediate_wire_values;
-logic [1:0] valid_in, shift;
-logic valid_enable, ready_enable, a, b, c, valid, ready, interim_valid;
-
+logic a_select, b_select, c_select, gate_choice, readSeed;
+logic [1:0] valid, shift;
 //////////////////////////////////////////////////////////////////
-// contol signal management
+// controller
 //////////////////////////////////////////////////////////////////
-assign ready = ready_enable & out.ready;
-assign valid = ready_enable & in.valid;
-
-assign in.ready = ready;
+GateSearchController controller(
+  .clk(clk),
+  .resetn(resetn),
+  .load(load),
+  .next(next),
+  .validIn(valid),
+  .dataFlowEnable(dataFlowEnable),
+  .readSeed(readSeed),
+  .shift(shift)
+);
 
 //////////////////////////////////////////////////////////////////
 // data flow
 //////////////////////////////////////////////////////////////////
 
-
+StreamingGate #(
+  .NUMBER_OF_INPUT_WIRES(NUMBER_OF_INPUT_WIRES)
+) data_flow (
+   .clk(clk),
+  .resetn(resetn & dataFlowEnable & readSeed),
+  .passThrough(0),
+  .gateChoice(gate_choice),
+  .aSelect(a_select),
+  .bSelect(b_select),
+  .cSelect(c_select),
+  .out(out),  
+  .passThroughOut(passThroughOut),
+  .in(in), 
+  .passThroughIn(passThroughIn) 
+);
 
 //////////////////////////////////////////////////////////////////
-// controller
+// PRNGs
 //////////////////////////////////////////////////////////////////
 
-GateSearchController  controller (
+CircuitPRNG #(
+  .LFSR_TYPE(LFSR_TYPE)
+) circuit_rng (
   .clk(clk),
-  .resetn(resetn),
-  .next(next),
-  .validIn(valid_in),
-  .validEnable(valid_enable),
-  .readyEnable(ready_enable),
-  .shift(shift)
+  .resetn(resetn & readSeed),
+  .next(shift[0]),
+  .seed(gateSeed),
+  .gateChoice(gate_choice),
+  .valid(valid[0])
+);
+
+WirePRNG #(
+  .PERMUTATION_TYPE(PERMUTATION_TYPE),
+  .LFSR_TYPE(LFSR_TYPE)
+) wire_rng (
+  .clk(clk),
+  .resetn(resetn & readSeed),
+  .next(shift[1]),
+  .seed(wireSeed),
+  .aSelect(a_select),
+  .bSelect(b_select),
+  .cSelect(c_select),
+  .valid(valid[1])
 );
 
 endmodule
 
 module CircuitPRNG #(
-  parameter LFSR_SIZE   = 8
+  parameter LFSRPkg::LFSRType LFSR_TYPE  = LFSRPkg::LFSR_16,
+  parameter LFSR_SIZE = LFSRPkg::port_bit_width(LFSR_TYPE)
 ) (
   input wire clk,
   input wire resetn,
   input wire next,
-  input wire [3:0] excludeValue,
   input wire [LFSR_SIZE - 1:0] seed,
   output logic [3: 0] gateChoice,
   output wire valid
@@ -219,15 +261,14 @@ module CircuitPRNG #(
 //////////////////////////////////////////////////////////////////
 // random number generator
 //////////////////////////////////////////////////////////////////
-PRNG #(
+SimplePRNG #(
   .OUTPUT_SIZE(4),
-  .LFSR_SIZE(LFSR_SIZE)
+  .LFSR_TYPE(LFSR_TYPE)
 ) prng (
   .clk(clk),
   .resetn(resetn),
   .next(next),
   .seed(seed),
-  .excludeValue(excludeValue),
   .valid(valid),
   .randomNumber(gateChoice)
 );
@@ -235,14 +276,15 @@ PRNG #(
 endmodule
 
 module WirePRNG #(
-  parameter PERM_SIZE   = 5,
-  parameter CHOICE_WIDTH  = $clog2(PERM_SIZE),
-  parameter LFSR_SIZE   = 8
+  parameter PermutationPkg::SafePermutaions PERMUTATION_TYPE = PermutationPkg::WIRES_13,
+  parameter LFSRPkg::LFSRType LFSR_TYPE  = LFSRPkg::LFSR_16,
+  parameter PERM_SIZE = PermutationPkg::permutaion_bit_width(PERMUTATION_TYPE),
+  parameter CHOICE_WIDTH  = PermutationPkg::port_bit_width(PERMUTATION_TYPE),
+  parameter LFSR_SIZE   = LFSRPkg::port_bit_width(LFSR_TYPE)
 ) (
   input wire clk,
   input wire resetn,
   input wire next,
-  input wire [PERM_SIZE - 1:0] excludeValue,
   input wire [LFSR_SIZE - 1:0] seed,
   output logic [CHOICE_WIDTH - 1: 0] aSelect,
   output logic [CHOICE_WIDTH - 1: 0] bSelect,
@@ -254,7 +296,9 @@ module WirePRNG #(
 // safe permutation sheild
 //////////////////////////////////////////////////////////////////
 logic random_number;
-SafePermutationGenerator sheild (
+SafePermutationGenerator #(
+  .PERMUTATION_TYPE(PERMUTATION_TYPE)
+) sheild (
   .selection(random_number),
   .permutation({aSelect,bSelect,cSelect})
 );
@@ -262,37 +306,38 @@ SafePermutationGenerator sheild (
 //////////////////////////////////////////////////////////////////
 // random number generator
 //////////////////////////////////////////////////////////////////
-PRNG #(
-  .OUTPUT_SIZE(PERM_SIZE),
-  .LFSR_SIZE(LFSR_SIZE)
+SimplePRNG #(
+  .LFSR_TYPE(LFSR_TYPE),
+  .ENABLE_MODULO(1),
+  .MODULO_VALUE(PermutationPkg::total_number_of_permutaion(PERMUTATION_TYPE)),
+  .OUTPUT_SIZE(PERM_SIZE)
 ) prng (
   .clk(clk),
   .resetn(resetn),
   .next(next),
   .seed(seed),
-  .excludeValue(excludeValue),
   .valid(valid),
   .randomNumber(random_number)
 );
 endmodule
 
 
-module GateSearchController #(
-  parameter SEED_SIZE = 8
-)(
+module GateSearchController (
   input wire clk,
   input wire resetn,
+  input wire load,
   input wire next,
   input wire [1:0] validIn,
-  output logic validEnable,
-  output logic readyEnable,
+  output logic dataFlowEnable,
+  output logic readSeed,
   output logic [1:0] shift
 );
 //////////////////////////////////////////////////////////////////
 // FSM
 //////////////////////////////////////////////////////////////////
 
-typedef enum bit { 
+typedef enum logic [1:0] {
+  LOAD_SEED,
   PROCESS,
   SHIFT
  } State;
@@ -314,7 +359,9 @@ end
 always_comb begin
   case (current_state)
     PROCESS:
-      next_state = next ? SHIFT : PROCESS;
+      next_state = load ? LOAD_SEED : (next ? SHIFT : PROCESS);
+    LOAD_SEED:
+      next_state = PROCESS;
     SHIFT:
       next_state = (&validIn) ? PROCESS : SHIFT;
     default: begin
@@ -330,8 +377,9 @@ logic shift_enable;
 
 assign shift_enable = current_state == SHIFT;
 
-assign validEnable = ~shift_enable;
-assign readyEnable = ~shift_enable;
+assign readSeed = current_state == LOAD_SEED;
+
+assign dataFlowEnable = ~shift_enable;
 assign shift = {2{shift_enable}} & (~validIn);
 
 endmodule
