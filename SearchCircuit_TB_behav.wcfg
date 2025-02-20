@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="SearchCircuit_TB_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="AgentPkg" />
+            <top_module name="FIFOPkg" />
+            <top_module name="GatePkg" />
+            <top_module name="LFSRPkg" />
+            <top_module name="PermutationPkg" />
+            <top_module name="SearchCircuit_TB" />
+            <top_module name="StreamSelectionPkg" />
+            <top_module name="glbl" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="241.834 ns"></ZoomStartTime>
+      <ZoomEndTime time="500.835 ns"></ZoomEndTime>
+      <Cursor1Time time="285.000 ns"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="345"></NameColumnWidth>
+      <ValueColumnWidth column_width="136"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="25" />
+   <wvobject type="logic" fp_name="/SearchCircuit_TB/clk">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/SearchCircuit_TB/resetn">
+      <obj_property name="ElementShortName">resetn</obj_property>
+      <obj_property name="ObjectShortName">resetn</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/SearchCircuit_TB/test_pass">
+      <obj_property name="ElementShortName">test_pass</obj_property>
+      <obj_property name="ObjectShortName">test_pass</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/SearchCircuit_TB/equal_ref">
+      <obj_property name="ElementShortName">equal_ref</obj_property>
+      <obj_property name="ObjectShortName">equal_ref</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/SearchCircuit_TB/equal_gate">
+      <obj_property name="ElementShortName">equal_gate</obj_property>
+      <obj_property name="ObjectShortName">equal_gate</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/config_extraction/current_state">
+      <obj_property name="ElementShortName">current_state[1:0]</obj_property>
+      <obj_property name="ObjectShortName">current_state[1:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/config_extraction/in_data">
+      <obj_property name="ElementShortName">in_data</obj_property>
+      <obj_property name="ObjectShortName">in_data</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/config_extraction/next_state">
+      <obj_property name="ElementShortName">next_state[1:0]</obj_property>
+      <obj_property name="ObjectShortName">next_state[1:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/config_extraction/out">
+      <obj_property name="ElementShortName">out[5:0]</obj_property>
+      <obj_property name="ObjectShortName">out[5:0]</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/config_extraction/out[5]">
+         <obj_property name="ElementShortName">[5]</obj_property>
+         <obj_property name="ObjectShortName">[5]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/config_extraction/out[4]">
+         <obj_property name="ElementShortName">[4]</obj_property>
+         <obj_property name="ObjectShortName">[4]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/config_extraction/out[3]">
+         <obj_property name="ElementShortName">[3]</obj_property>
+         <obj_property name="ObjectShortName">[3]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/config_extraction/out[2]">
+         <obj_property name="ElementShortName">[2]</obj_property>
+         <obj_property name="ObjectShortName">[2]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/config_extraction/out[1]">
+         <obj_property name="ElementShortName">[1]</obj_property>
+         <obj_property name="ObjectShortName">[1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/config_extraction/out[0]">
+         <obj_property name="ElementShortName">[0]</obj_property>
+         <obj_property name="ObjectShortName">[0]</obj_property>
+         <obj_property name="isExpanded"></obj_property>
+         <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/config_extraction/out[0].configValue">
+            <obj_property name="ElementShortName">.configValue</obj_property>
+            <obj_property name="ObjectShortName">.configValue</obj_property>
+            <obj_property name="isExpanded"></obj_property>
+            <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/config_extraction/out[0].configValue.gateSeed">
+               <obj_property name="ElementShortName">.gateSeed[15:0]</obj_property>
+               <obj_property name="ObjectShortName">.gateSeed[15:0]</obj_property>
+               <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+            </wvobject>
+            <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/config_extraction/out[0].configValue.wireSelectionSeed">
+               <obj_property name="ElementShortName">.wireSelectionSeed[15:0]</obj_property>
+               <obj_property name="ObjectShortName">.wireSelectionSeed[15:0]</obj_property>
+               <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+            </wvobject>
+         </wvobject>
+         <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/config_extraction/out[0].data">
+            <obj_property name="ElementShortName">.data[3:0][7:0]</obj_property>
+            <obj_property name="ObjectShortName">.data[3:0][7:0]</obj_property>
+         </wvobject>
+      </wvobject>
+   </wvobject>
+   <wvobject type="logic" fp_name="/SearchCircuit_TB/dut/dut/config_extraction/resetn">
+      <obj_property name="ElementShortName">resetn</obj_property>
+      <obj_property name="ObjectShortName">resetn</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/config_extraction/validOut">
+      <obj_property name="ElementShortName">validOut[5:0]</obj_property>
+      <obj_property name="ObjectShortName">validOut[5:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/\genblk1[0].gate /wireSeed">
+      <obj_property name="ElementShortName">wireSeed[15:0]</obj_property>
+      <obj_property name="ObjectShortName">wireSeed[15:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/\genblk1[0].gate /valid">
+      <obj_property name="ElementShortName">valid[1:0]</obj_property>
+      <obj_property name="ObjectShortName">valid[1:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/\genblk1[0].gate /shift">
+      <obj_property name="ElementShortName">shift[1:0]</obj_property>
+      <obj_property name="ObjectShortName">shift[1:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/SearchCircuit_TB/dut/dut/\genblk1[0].gate /resetn">
+      <obj_property name="ElementShortName">resetn</obj_property>
+      <obj_property name="ObjectShortName">resetn</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/SearchCircuit_TB/dut/dut/\genblk1[0].gate /readSeed">
+      <obj_property name="ElementShortName">readSeed</obj_property>
+      <obj_property name="ObjectShortName">readSeed</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/SearchCircuit_TB/dut/dut/\genblk1[0].gate /next">
+      <obj_property name="ElementShortName">next</obj_property>
+      <obj_property name="ObjectShortName">next</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/SearchCircuit_TB/dut/dut/\genblk1[0].gate /load">
+      <obj_property name="ElementShortName">load</obj_property>
+      <obj_property name="ObjectShortName">load</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/\genblk1[0].gate /gate_choice">
+      <obj_property name="ElementShortName">gate_choice[3:0]</obj_property>
+      <obj_property name="ObjectShortName">gate_choice[3:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/\genblk1[0].gate /gateSeed">
+      <obj_property name="ElementShortName">gateSeed[15:0]</obj_property>
+      <obj_property name="ObjectShortName">gateSeed[15:0]</obj_property>
+      <obj_property name="Radix">UNSIGNEDDECRADIX</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/SearchCircuit_TB/dut/dut/\genblk1[0].gate /dataFlowEnable">
+      <obj_property name="ElementShortName">dataFlowEnable</obj_property>
+      <obj_property name="ObjectShortName">dataFlowEnable</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/SearchCircuit_TB/dut/dut/\genblk1[0].gate /clk">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/\genblk1[0].gate /c_select">
+      <obj_property name="ElementShortName">c_select[2:0]</obj_property>
+      <obj_property name="ObjectShortName">c_select[2:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/\genblk1[0].gate /b_select">
+      <obj_property name="ElementShortName">b_select[2:0]</obj_property>
+      <obj_property name="ObjectShortName">b_select[2:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/SearchCircuit_TB/dut/dut/\genblk1[0].gate /a_select">
+      <obj_property name="ElementShortName">a_select[2:0]</obj_property>
+      <obj_property name="ObjectShortName">a_select[2:0]</obj_property>
+   </wvobject>
+</wave_config>

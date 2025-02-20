@@ -19,6 +19,7 @@ module SearchCircuitLayer #(
   input wire load,
   input wire next,
   output logic loaded,
+  output logic readyToProcess,
   AXI4S.Master out,
   AXI4S.Master passThroughOut,
   AXI4S.Slave in,
@@ -31,9 +32,8 @@ module SearchCircuitLayer #(
 type_of_store configs [NUMBER_OF_STAGES - 1:0];
 logic [NUMBER_OF_STAGES - 1:0] packed_valids;
 logic [NUMBER_OF_STAGES - 1:0] ready_to_process;
-logic flow_enable;
 
-// ready_to_process;
+assign readyToProcess = & ready_to_process;
 
 AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) gate_internal[NUMBER_OF_STAGES:0]();
 AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) passThrough[NUMBER_OF_STAGES:0]();
