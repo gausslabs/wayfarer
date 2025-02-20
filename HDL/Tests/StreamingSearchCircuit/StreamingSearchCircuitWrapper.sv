@@ -42,7 +42,7 @@ SearchCircuitLayer #(
   .clk(clk),
   .resetn(resetn),
   .next(0),
-  .load(current_state == STARTING),
+  .load(current_state != STARTING),
   .loaded(loaded),
   .out(out),
   .passThroughOut(passThroughOut),

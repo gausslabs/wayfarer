@@ -161,6 +161,7 @@ module SearchGate #(
   parameter LFSRPkg::LFSRType LFSR_TYPE  = LFSRPkg::LFSR_16,
   parameter PermutationPkg::SafePermutaions PERMUTATION_TYPE = PermutationPkg::WIRES_13,
   parameter NUMBER_OF_INPUT_WIRES = PermutationPkg::number_of_wires(PERMUTATION_TYPE),
+  parameter CHOICE_WIDTH = $clog2(NUMBER_OF_INPUT_WIRES),
   parameter LFSR_SIZE   = LFSRPkg::port_bit_width(LFSR_TYPE)
 ) (
   input wire clk,
@@ -169,7 +170,7 @@ module SearchGate #(
   input wire next,
   input wire [LFSR_SIZE - 1:0] gateSeed,
   input wire [LFSR_SIZE - 1:0] wireSeed,
-  output logic dataFlowEnable,
+  output logic readyToProcess,
   AXI4S.Master out,  
   AXI4S.Master passThroughOut,
   AXI4S.Slave in, 
@@ -179,7 +180,9 @@ module SearchGate #(
 //////////////////////////////////////////////////////////////////
 // internal values
 //////////////////////////////////////////////////////////////////
-logic a_select, b_select, c_select, gate_choice, readSeed;
+logic [CHOICE_WIDTH - 1:0] a_select, b_select, c_select;
+logic [3:0] gate_choice;
+logic readSeed;
 logic [1:0] valid, shift;
 //////////////////////////////////////////////////////////////////
 // controller
@@ -190,7 +193,7 @@ GateSearchController controller(
   .load(load),
   .next(next),
   .validIn(valid),
-  .dataFlowEnable(dataFlowEnable),
+  .ready(readyToProcess),
   .readSeed(readSeed),
   .shift(shift)
 );
@@ -203,7 +206,7 @@ StreamingGate #(
   .NUMBER_OF_INPUT_WIRES(NUMBER_OF_INPUT_WIRES)
 ) data_flow (
    .clk(clk),
-  .resetn(resetn & dataFlowEnable & readSeed),
+  .resetn(resetn & (~next) & (~load)),
   .passThrough(0),
   .gateChoice(gate_choice),
   .aSelect(a_select),
@@ -223,7 +226,7 @@ CircuitPRNG #(
   .LFSR_TYPE(LFSR_TYPE)
 ) circuit_rng (
   .clk(clk),
-  .resetn(resetn & readSeed),
+  .resetn(resetn & (~readSeed)),
   .next(shift[0]),
   .seed(gateSeed),
   .gateChoice(gate_choice),
@@ -235,7 +238,7 @@ WirePRNG #(
   .LFSR_TYPE(LFSR_TYPE)
 ) wire_rng (
   .clk(clk),
-  .resetn(resetn & readSeed),
+  .resetn(resetn & (~readSeed)),
   .next(shift[1]),
   .seed(wireSeed),
   .aSelect(a_select),
@@ -295,12 +298,12 @@ module WirePRNG #(
 //////////////////////////////////////////////////////////////////
 // safe permutation sheild
 //////////////////////////////////////////////////////////////////
-logic random_number;
+logic[PERM_SIZE - 1:0] random_number;
 SafePermutationGenerator #(
   .PERMUTATION_TYPE(PERMUTATION_TYPE)
 ) sheild (
   .selection(random_number),
-  .permutation({aSelect,bSelect,cSelect})
+  .permutation({cSelect,bSelect,aSelect})
 );
 
 //////////////////////////////////////////////////////////////////
@@ -328,7 +331,7 @@ module GateSearchController (
   input wire load,
   input wire next,
   input wire [1:0] validIn,
-  output logic dataFlowEnable,
+  output logic ready,
   output logic readSeed,
   output logic [1:0] shift
 );
@@ -361,7 +364,7 @@ always_comb begin
     PROCESS:
       next_state = load ? LOAD_SEED : (next ? SHIFT : PROCESS);
     LOAD_SEED:
-      next_state = PROCESS;
+      next_state = load ?  LOAD_SEED : PROCESS;
     SHIFT:
       next_state = (&validIn) ? PROCESS : SHIFT;
     default: begin
@@ -379,7 +382,8 @@ assign shift_enable = current_state == SHIFT;
 
 assign readSeed = current_state == LOAD_SEED;
 
-assign dataFlowEnable = ~shift_enable;
+assign ready = current_state == PROCESS;
+
 assign shift = {2{shift_enable}} & (~validIn);
 
 endmodule

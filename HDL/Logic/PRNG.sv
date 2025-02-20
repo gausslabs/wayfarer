@@ -50,8 +50,8 @@ begin
 if(resetn)
 begin
   valid <= next;
-  if (random_number > MODULO_VALUE)
-  randomNumber <= random_number - MODULO_VALUE;
+  if (random_number[OUTPUT_SIZE - 1:0] > MODULO_VALUE)
+  randomNumber <= random_number[OUTPUT_SIZE - 1:0] - MODULO_VALUE;
   else
   randomNumber <= random_number;
 end

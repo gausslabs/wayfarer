@@ -30,10 +30,10 @@ module SearchCircuitLayer #(
 /////////////////////////////////////////////////////////////////
 type_of_store configs [NUMBER_OF_STAGES - 1:0];
 logic [NUMBER_OF_STAGES - 1:0] packed_valids;
-logic [NUMBER_OF_STAGES - 1:0] data_flow_enable;
+logic [NUMBER_OF_STAGES - 1:0] ready_to_process;
 logic flow_enable;
 
-assign flow_enable = &data_flow_enable;
+// ready_to_process;
 
 AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) gate_internal[NUMBER_OF_STAGES:0]();
 AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) passThrough[NUMBER_OF_STAGES:0]();
@@ -63,28 +63,28 @@ assign loaded = &packed_valids;
 
 Passthrough connect_in_and_gate (
   .clk(clk),
-  .resetn(resetn & load & flow_enable),
+  .resetn(resetn & (~next) & (~load)),
   .out(gate_internal[0]),
   .in(in)
 );
 
 Passthrough connect_passthrough_in (
   .clk(clk),
-  .resetn(resetn & load & flow_enable),
+  .resetn(resetn & (~next) & (~load)),
   .out(passThrough[0]),
   .in(passThroughIn)
 );
 
 Passthrough connect_passthrough_out (
   .clk(clk),
-  .resetn(resetn & load & flow_enable),
+  .resetn(resetn & (~next) & (~load)),
   .out(passThroughOut),
   .in(passThrough[NUMBER_OF_STAGES])
 );
 
 Passthrough connect_gate_and_out (
   .clk(clk),
-  .resetn(resetn & load & flow_enable),
+  .resetn(resetn & (~next) & (~load)),
   .out(out),
   .in(gate_internal[NUMBER_OF_STAGES])
 );
@@ -104,7 +104,7 @@ SearchGate #(
   .resetn(resetn),
   .load(load),
   .next(next),
-  .dataFlowEnable(data_flow_enable[i]),
+  .readyToProcess(ready_to_process[i]),
   .gateSeed(configs[i].configValue.gateSeed),
   .wireSeed(configs[i].configValue.wireSelectionSeed),
   .in(gate_internal[i]),

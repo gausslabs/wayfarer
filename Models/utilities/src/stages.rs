@@ -1,3 +1,5 @@
+use std::fmt::format;
+
 use crate::bitfield::BitFeild;
 use crate::lfsrs::LFSR16;
 
@@ -167,6 +169,8 @@ pub struct SearchGate<const NUMBER_OF_WIRES: usize> {
     wire_permutations: Vec<[usize; 3]>,
     wire_choices: [usize; 3],
     func: Base2GateControlFunc,
+    permutation_index: usize,
+    gate_index: usize,
     gate_seed: u16,
     wire_seed: u16,
     gate_lfsr: LFSR16,
@@ -181,23 +185,29 @@ impl<const NUMBER_OF_WIRES: usize> SearchGate<NUMBER_OF_WIRES> {
             func: Base2GateControlFunc::from_u8(0),
             gate_seed: gate_seed,
             wire_seed: wire_seed,
+            permutation_index: 0,
+            gate_index: 0,
             gate_lfsr: LFSR16::new(gate_seed, 1 << 16),
             wire_lfsr: LFSR16::new(wire_seed, 1 << 16),
         }
     }
 
+    pub fn config_text(&self) -> String {
+        format!("wire permutation -> {}, gate index -> {}, wire choices {:?}, wire seed {}, gate seed {}", self.permutation_index, self.gate_index % 16, self.wire_choices, self.wire_seed, self.gate_seed)
+    }
+
     pub fn sample(&mut self) {
         let perm_size = bits(n_p_3(NUMBER_OF_WIRES));
         let permutation_mask = (1 << perm_size) - 1;
-        let permutation_index = (self.wire_lfsr.next().unwrap() & permutation_mask) as usize
+        self.permutation_index = (self.wire_lfsr.next().unwrap() & permutation_mask) as usize
             % self.wire_permutations.len();
-        let gate_index = self.gate_lfsr.next().unwrap() % 256;
-        self.wire_choices = self.wire_permutations[permutation_index];
-        self.func = Base2GateControlFunc::from_u8((gate_index % 16) as u8)
+        self.gate_index = self.gate_lfsr.next().unwrap() as usize % 256;
+        self.wire_choices = self.wire_permutations[self.permutation_index];
+        self.func = Base2GateControlFunc::from_u8((self.gate_index % 16) as u8)
     }
 
     pub fn get_config(&self) -> usize {
-        let mut bit_value = BitFeild::new(vec![("gateSeed", 16), ("wireSelectionSeed", 16)]);
+        let mut bit_value = BitFeild::new(vec![("wireSelectionSeed", 16), ("gateSeed", 16)]);
         // setting the wire selections
         bit_value.set("wireSelectionSeed", self.wire_seed as usize);
         // setting the gate values
@@ -238,6 +248,12 @@ impl<const NUMBER_OF_WIRES: usize, const NUMBER_OF_STAGES: usize>
         for i in 0..NUMBER_OF_STAGES {
             self.gates[i].sample()
         }
+    }
+
+    pub fn circuit_config_text(&self) -> String {
+        self.gates.iter().enumerate().map(|(i,n)| format!("{}: {}",i,  n.config_text()))
+        .collect::<Vec<_>>()
+        .join("\n")
     }
 
     pub fn get_config(&self) -> Vec<usize> {

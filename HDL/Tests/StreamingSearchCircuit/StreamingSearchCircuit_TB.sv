@@ -24,7 +24,7 @@ AXISSource #(
 ///////////////////////////////////////////////////
 // Input 
 ///////////////////////////////////////////////////
-localparam INPUT_CONFIG_LIMIT        = 12;
+localparam INPUT_CONFIG_LIMIT        = 24;
 localparam INPUT_CONFIG_ADDR_WIDTH   = $clog2(INPUT_CONFIG_LIMIT);
 localparam INPUT_CONFIG_SOURCE_FILE = "config.hex";
 AXISSource #(
@@ -129,7 +129,7 @@ begin
 
   #10 resetn = 1;
 
-  #1000 $finish();
+  #2000 $finish();
 end
 
 

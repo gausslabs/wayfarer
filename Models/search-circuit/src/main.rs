@@ -1,8 +1,8 @@
 use rand::Rng;
 use std::{collections::HashSet, env, usize};
 use utilities::{
-    gate_internals::{get_bool_vector, Base2GateControlFunc},
-    stages::{Gate, ReferenceCircuit},
+    gate_internals::get_bool_vector,
+    stages::{SearchCircuit, SearchGate},
     write_file, Layer,
 };
 
@@ -14,25 +14,25 @@ fn main() {
             "streamInput.hex",
             "config.hex",
             "referenceStream.hex",
-            "gateStream.hex",
+            "searchStream.hex",
         ),
         2 => (
             args[1].as_str(),
             "config.hex",
             "referenceStream.hex",
-            "gateStream.hex",
+            "searchStream.hex",
         ),
         3 => (
             args[1].as_str(),
             args[2].as_str(),
             "referenceStream.hex",
-            "gateStream.hex",
+            "searchStream.hex",
         ),
         4 => (
             args[1].as_str(),
             args[2].as_str(),
             args[3].as_str(),
-            "gateStream.hex",
+            "searchStream.hex",
         ),
         5 => (
             args[1].as_str(),
@@ -55,37 +55,34 @@ fn main() {
     //////////////////////////////////////////////////////////////////////////
     let mut ref_gates = vec![];
     for i in 0..NUMBER_OF_GATES {
-        let mut a_wire = 0;
-        let mut b_wire = 0;
-        let mut c_wire = 0;
+        let mut gate_seed = 0;
+        let mut wire_seed = 0;
         if PASSTHROUGH {
-            a_wire = i;
-            b_wire = i;
-            c_wire = i;
+            gate_seed = 0;
+            wire_seed = 0;
         } else {
             let mut set = HashSet::new();
-            while set.len() < 3 {
-                set.insert(rng.gen_range(0..NUMBER_OF_WIRES));
+            while set.len() < 2 {
+                set.insert(rng.gen_range(0..(1<< 16)));
             }
             let values = set.iter().map(|x| *x).collect::<Vec<usize>>();
             println!("The values are {:?}", values);
-            a_wire = values[0];
-            b_wire = values[1];
-            c_wire = values[2];
+            gate_seed = values[0];
+            wire_seed = values[1];
         }
-        println!("The wires are {:?}", [a_wire, b_wire, c_wire]);
-        let operation = rng.gen_range(0..=15);
 
-        let g: Gate<NUMBER_OF_WIRES> = Gate::new(
-            [a_wire as u8, b_wire as u8, c_wire as u8],
-            a_wire == b_wire,
-            Base2GateControlFunc::from_u8(operation as u8),
+        let g: SearchGate<NUMBER_OF_WIRES> = SearchGate::new(
+            gate_seed as u16, wire_seed as u16
         );
         ref_gates.push(g);
     }
 
-    let ref_circuit: ReferenceCircuit<NUMBER_OF_WIRES, NUMBER_OF_GATES> =
-        ReferenceCircuit::new(ref_gates.try_into().unwrap());
+    let mut ref_circuit: SearchCircuit<NUMBER_OF_WIRES, NUMBER_OF_GATES> =
+        SearchCircuit::new(ref_gates.try_into().unwrap());
+
+    ref_circuit.sample();
+
+    println!("The config is \n{}",ref_circuit.circuit_config_text());
 
     let config_value = ref_circuit
         .get_config()
@@ -99,7 +96,7 @@ fn main() {
     //////////////////////////////////////////////////////////////////////////
 
     let ref_value = (0..(1 << NUMBER_OF_WIRES))
-        .map(|n| format!("{:01x}", n))
+        .map(|n| format!("{:02x}", n))
         .collect::<Vec<_>>()
         .join("\n");
 
@@ -109,7 +106,7 @@ fn main() {
             let output = ref_circuit.evaluate(bool_inputs);
             utilities::gate_internals::get_value_from_bool_vector(output)
         })
-        .map(|n| format!("{:01x}", n))
+        .map(|n| format!("{:02x}", n))
         .collect::<Vec<_>>()
         .join("\n");
 
