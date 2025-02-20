@@ -1,3 +1,4 @@
+*.wcfg
 *.jou
 *.log
 .Xil/
