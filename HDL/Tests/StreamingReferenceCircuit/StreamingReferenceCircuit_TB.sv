@@ -7,7 +7,7 @@ AXI4S #(.DATA_WIDTH($bits(StreamSelectionPkg::AgentConfig))) configuration();
 ///////////////////////////////////////////////////
 // Input Source
 ///////////////////////////////////////////////////
-localparam INPUT_DATA_LIMIT        = 15;
+localparam INPUT_DATA_LIMIT        = (1 << AgentPkg::NUMBER_OF_INPUT_WIRES) - 1;
 localparam INPUT_DATA_ADDR_WIDTH   = $clog2(INPUT_DATA_LIMIT);
 localparam INPUT_DATA_SOURCE_FILE = "streamInput.hex";
 AXISSource #(
@@ -62,9 +62,9 @@ ReferenceCircuitWrapper dut (
 ///////////////////////////////////////////////////
 // Output comparrison
 ///////////////////////////////////////////////////
-localparam GATE_OUTPUT_LIMIT      = 15;
+localparam GATE_OUTPUT_LIMIT      = (1 << AgentPkg::NUMBER_OF_INPUT_WIRES) - 1;
 localparam GATE_OUTPUT_ADDR_WIDTH = $clog2(GATE_OUTPUT_LIMIT);
-localparam REFERENCE_OUTPUT_LIMIT      = 15;
+localparam REFERENCE_OUTPUT_LIMIT      = (1 << AgentPkg::NUMBER_OF_INPUT_WIRES) - 1;
 localparam REFERENCE_OUTPUT_ADDR_WIDTH = $clog2(REFERENCE_OUTPUT_LIMIT);
 localparam REF_OUTPUT_SOURCE_FILE = "referenceStream.hex";
 localparam GATE_OUTPUT_SOURCE_FILE = "gateStream.hex";
@@ -129,7 +129,7 @@ begin
 
   #10 resetn = 1;
 
-  #1000 $finish();
+  #105000 $finish();
 end
 
 
