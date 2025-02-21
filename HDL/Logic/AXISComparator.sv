@@ -10,6 +10,7 @@ module AXISComparator #(
   input wire resetn,
   AXI4S.Slave in1,
   AXI4S.Slave in2,
+  output logic lastReached,
   output logic equal
 );
 logic toggle;
@@ -32,6 +33,19 @@ end
 else
 begin
   assign toggle = 1;
+end
+
+always_ff @ (posedge clk)
+begin
+if(resetn)
+begin
+   if (in1.valid & in2.valid & toggle)
+    lastReached <= in1.last & in2.last;
+end
+else
+begin
+  lastReached <= 0;
+end
 end
 
 

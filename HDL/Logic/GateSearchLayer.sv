@@ -171,6 +171,7 @@ module SearchGate #(
   input wire [LFSR_SIZE - 1:0] gateSeed,
   input wire [LFSR_SIZE - 1:0] wireSeed,
   output logic readyToProcess,
+  output AgentPkg::GateConfig gateConfig,
   AXI4S.Master out,  
   AXI4S.Master passThroughOut,
   AXI4S.Slave in, 
@@ -184,6 +185,11 @@ logic [CHOICE_WIDTH - 1:0] a_select, b_select, c_select;
 logic [3:0] gate_choice;
 logic readSeed;
 logic [1:0] valid, shift;
+
+assign gateConfig.gateSelect = gate_choice;
+assign gateConfig.aSelect = a_select;
+assign gateConfig.bSelect = b_select;
+assign gateConfig.cSelect = c_select;
 //////////////////////////////////////////////////////////////////
 // controller
 //////////////////////////////////////////////////////////////////
