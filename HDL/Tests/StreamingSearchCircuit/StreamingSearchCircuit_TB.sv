@@ -13,7 +13,7 @@ localparam INPUT_DATA_SOURCE_FILE = "streamInput.hex";
 AXISSource #(
   .DATA_WIDTH(AgentPkg::NUMBER_OF_INPUT_WIRES),
   .ADDR_WIDTH(INPUT_DATA_ADDR_WIDTH),
-  .LIMIT(INPUT_DATA_LIMIT / 2),
+  .LIMIT(INPUT_DATA_LIMIT - 1),
   .SOURCE_FILE(INPUT_DATA_SOURCE_FILE)
 ) input_source (
   .clk(clk),
@@ -72,7 +72,7 @@ localparam GATE_OUTPUT_SOURCE_FILE = "searchStream.hex";
 AXISReferenceComparator #(
   .DATA_WIDTH(AgentPkg::NUMBER_OF_INPUT_WIRES),
   .ADDR_WIDTH(REFERENCE_OUTPUT_ADDR_WIDTH),
-  .LIMIT(REFERENCE_OUTPUT_LIMIT / 2),
+  .LIMIT(REFERENCE_OUTPUT_LIMIT - 1),
   .NAME("Reference"),
   .SOURCE_FILE(REF_OUTPUT_SOURCE_FILE)
 ) reference_comparator (
@@ -86,7 +86,7 @@ AXISReferenceComparator #(
   .DATA_WIDTH(AgentPkg::NUMBER_OF_INPUT_WIRES),
   .ADDR_WIDTH(GATE_OUTPUT_ADDR_WIDTH),
   .NAME("GATE"),
-  .LIMIT(GATE_OUTPUT_LIMIT / 2),
+  .LIMIT(GATE_OUTPUT_LIMIT - 1),
   .SOURCE_FILE(GATE_OUTPUT_SOURCE_FILE)
 ) GATE_comparator (
   .clk(clk),
@@ -129,7 +129,7 @@ begin
 
   #10 resetn = 1;
 
-  #55000 $finish();
+  #105000 $finish();
 end
 
 
