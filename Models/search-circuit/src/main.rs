@@ -46,8 +46,8 @@ fn main() {
             std::process::exit(1);
         }
     };
-    const NUMBER_OF_WIRES: usize = 5;
     const NUMBER_OF_GATES: usize = 6;
+    const NUMBER_OF_WIRES: usize = (2 * NUMBER_OF_GATES) + 1;
     const PASSTHROUGH: bool = false;
     let mut rng = rand::thread_rng();
     //////////////////////////////////////////////////////////////////////////
@@ -96,7 +96,7 @@ fn main() {
     //////////////////////////////////////////////////////////////////////////
 
     let ref_value = (0..(1 << NUMBER_OF_WIRES))
-        .map(|n| format!("{:02x}", n))
+        .map(|n| format!("{:04x}", n))
         .collect::<Vec<_>>()
         .join("\n");
 
@@ -106,7 +106,7 @@ fn main() {
             let output = ref_circuit.evaluate(bool_inputs);
             utilities::gate_internals::get_value_from_bool_vector(output)
         })
-        .map(|n| format!("{:02x}", n))
+        .map(|n| format!("{:04x}", n))
         .collect::<Vec<_>>()
         .join("\n");
 

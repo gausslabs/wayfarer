@@ -49,6 +49,7 @@ module SearchAgent #(
 // Internal nets
 //////////////////////////////////////////////////////////////////////////////////////
 localparam NUMBER_OF_STAGES = AgentPkg::NUMBER_OF_STAGES;
+localparam LIMIT = NUMBER_OF_STAGES;
 AXI4S #(.DATA_WIDTH(StreamSelectionPkg::StreamData)) selceted_stream();
 AXI4S #(.DATA_WIDTH(StreamSelectionPkg::AgentConfig))  extracted_stream(), extracted_stream_buffered(), reference_stream(), search_stream(), reference_stream_selected(), search_stream_selected();
 AXI4S #(.DATA_WIDTH(AgentPkg::NUMBER_OF_INPUT_WIRES)) source(), passthrough_search(), search_source(), passthrough_ref(), ref_source(), passthrough_comparator(), comparator_source();
@@ -124,7 +125,7 @@ StreamSelectBasedOnType #(
 //////////////////////////////////////////////////////////////////////////////////////
 LinearSource #(
   .DATA_WIDTH(AgentPkg::NUMBER_OF_INPUT_WIRES)
-) source (
+) lin_source (
   .clk(clk),
   .resetn(resetn),
   .out(source)
@@ -196,7 +197,7 @@ SearchAgenrController controller (
 //////////////////////////////////////////////////////////////////////////////////////
 // Sending results
 //////////////////////////////////////////////////////////////////////////////////////
-AXI4S #(.DATA_WIDTH($clog2(LIMIT))) addr()
+AXI4S #(.DATA_WIDTH($clog2(LIMIT))) addr();
 LinearSource #(
     .LIMIT(NUMBER_OF_STAGES),
     .DATA_WIDTH($clog2(LIMIT))

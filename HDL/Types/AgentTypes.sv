@@ -9,6 +9,19 @@ typedef enum logic [1:0] {
   WIRES_13
  } SafePermutaions;
 
+ function SafePermutaions wire_type (input int s);
+  case (s)
+    2:
+       wire_type = WIRES_05;
+    5:
+       wire_type = WIRES_11;
+    6:
+       wire_type = WIRES_13;
+   default:
+       wire_type = WIRES_05;
+  endcase
+ endfunction
+
  function int number_of_wires (input SafePermutaions s);
   case (s)
     WIRES_05:
@@ -75,8 +88,8 @@ endpackage
 
 package AgentPkg;
 localparam LFSRPkg::LFSRType LFSR_TYPE  = LFSRPkg::LFSR_16;
-localparam PermutationPkg::SafePermutaions PERMUTATION_TYPE = PermutationPkg::WIRES_05;
 localparam NUMBER_OF_STAGES = 6;
+localparam PermutationPkg::SafePermutaions PERMUTATION_TYPE = PermutationPkg::wire_type(NUMBER_OF_STAGES);
 localparam STAGES_ID_WIDTH = $clog2(NUMBER_OF_STAGES);
 localparam DATA_WIDTH = 8;
 localparam NUMBER_OF_INPUT_WIRES = PermutationPkg::number_of_wires(PERMUTATION_TYPE);

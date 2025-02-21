@@ -1,19 +1,19 @@
 module SearchCircuit_TB ();
 
 logic clk, resetn, test_pass, equal_ref, equal_gate;
-
-AXI4S #(.DATA_WIDTH($bits(AgentPkg::NUMBER_OF_INPUT_WIRES)))   source(), in(), passThroughIn(), passThroughOut(), out();
+localparam STREAM_WITDH = AgentPkg::NUMBER_OF_INPUT_WIRES;
+AXI4S #(.DATA_WIDTH($bits(STREAM_WITDH)))   source(), in(), passThroughIn(), passThroughOut(), out();
 AXI4S #(.DATA_WIDTH($bits(StreamSelectionPkg::AgentConfig))) configuration();
 ///////////////////////////////////////////////////
 // Input Source
 ///////////////////////////////////////////////////
-localparam INPUT_DATA_LIMIT        = 15;
+localparam INPUT_DATA_LIMIT        = (1 << AgentPkg::NUMBER_OF_INPUT_WIRES);
 localparam INPUT_DATA_ADDR_WIDTH   = $clog2(INPUT_DATA_LIMIT);
 localparam INPUT_DATA_SOURCE_FILE = "streamInput.hex";
 AXISSource #(
   .DATA_WIDTH(AgentPkg::NUMBER_OF_INPUT_WIRES),
   .ADDR_WIDTH(INPUT_DATA_ADDR_WIDTH),
-  .LIMIT(INPUT_DATA_LIMIT),
+  .LIMIT(INPUT_DATA_LIMIT / 2),
   .SOURCE_FILE(INPUT_DATA_SOURCE_FILE)
 ) input_source (
   .clk(clk),
@@ -62,9 +62,9 @@ SearchCircuitWrapper dut (
 ///////////////////////////////////////////////////
 // Output comparrison
 ///////////////////////////////////////////////////
-localparam GATE_OUTPUT_LIMIT      = 15;
+localparam GATE_OUTPUT_LIMIT      = (1 << AgentPkg::NUMBER_OF_INPUT_WIRES);
 localparam GATE_OUTPUT_ADDR_WIDTH = $clog2(GATE_OUTPUT_LIMIT);
-localparam REFERENCE_OUTPUT_LIMIT      = 15;
+localparam REFERENCE_OUTPUT_LIMIT      = (1 << AgentPkg::NUMBER_OF_INPUT_WIRES);
 localparam REFERENCE_OUTPUT_ADDR_WIDTH = $clog2(REFERENCE_OUTPUT_LIMIT);
 localparam REF_OUTPUT_SOURCE_FILE = "referenceStream.hex";
 localparam GATE_OUTPUT_SOURCE_FILE = "searchStream.hex";
@@ -72,7 +72,7 @@ localparam GATE_OUTPUT_SOURCE_FILE = "searchStream.hex";
 AXISReferenceComparator #(
   .DATA_WIDTH(AgentPkg::NUMBER_OF_INPUT_WIRES),
   .ADDR_WIDTH(REFERENCE_OUTPUT_ADDR_WIDTH),
-  .LIMIT(REFERENCE_OUTPUT_LIMIT),
+  .LIMIT(REFERENCE_OUTPUT_LIMIT / 2),
   .NAME("Reference"),
   .SOURCE_FILE(REF_OUTPUT_SOURCE_FILE)
 ) reference_comparator (
@@ -86,7 +86,7 @@ AXISReferenceComparator #(
   .DATA_WIDTH(AgentPkg::NUMBER_OF_INPUT_WIRES),
   .ADDR_WIDTH(GATE_OUTPUT_ADDR_WIDTH),
   .NAME("GATE"),
-  .LIMIT(GATE_OUTPUT_LIMIT),
+  .LIMIT(GATE_OUTPUT_LIMIT / 2),
   .SOURCE_FILE(GATE_OUTPUT_SOURCE_FILE)
 ) GATE_comparator (
   .clk(clk),
@@ -129,7 +129,7 @@ begin
 
   #10 resetn = 1;
 
-  #2000 $finish();
+  #55000 $finish();
 end
 
 

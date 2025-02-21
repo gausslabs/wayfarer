@@ -12,7 +12,7 @@ module SafePermutationGenerator5 #(
   parameter PORT_SIZE = 3
 ) (
   input wire [PERM_SIZE - 1:0] selection,
-  output logic [PORT_SIZE- 1:0] [2:0] permutation
+  output logic [2:0] [PORT_SIZE- 1:0] permutation
 );
 
 always_comb
