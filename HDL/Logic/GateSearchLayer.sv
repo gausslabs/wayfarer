@@ -28,6 +28,7 @@ module StreamingGate #(
 /////////////////////////////////////////////////////////////////
 import GatePkg::GATE_DELAY;
 
+(* DONT_TOUCH = "TRUE" *)
 AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) pass_through[GATE_DELAY -1:0]();
 
 /////////////////////////////////////////////////////////////////
@@ -38,7 +39,7 @@ genvar i;
 for (i=0; i<GATE_DELAY; ++i) begin
   if(i == 0)
   begin
-    Passthrough first_PassThrough(
+    (* DONT_TOUCH = "TRUE" *) Passthrough first_PassThrough(
     .clk(clk),
     .resetn(resetn),
     .out(pass_through[i]),
@@ -47,7 +48,7 @@ for (i=0; i<GATE_DELAY; ++i) begin
   end
   else 
   begin
-    Passthrough next_PassThrough(
+    (* DONT_TOUCH = "TRUE" *) Passthrough next_PassThrough(
     .clk(clk),
     .resetn(resetn),
     .out(pass_through[i]),
@@ -56,7 +57,7 @@ for (i=0; i<GATE_DELAY; ++i) begin
   end
 end
 
-StreamConnector last_pasthough (
+(* DONT_TOUCH = "TRUE" *) StreamConnector last_pasthough (
   .in(pass_through[GATE_DELAY-1]),
   .out(passThroughOut)
 );
@@ -82,6 +83,68 @@ Gate #(
   .inputWires(in.data),
   .outputWires(out.data)
 );
+
+endmodule
+
+module ParallelStreamGates #(
+  parameter NUMBER_OF_STAGES = 8,
+  parameter NUMBER_OF_INPUT_WIRES = 5,
+  parameter CHOICE_WIDTH          = $clog2(NUMBER_OF_INPUT_WIRES)
+)(
+  input wire clk,
+  input wire resetn,
+  input wire passThrough,
+  input wire validConfigIn,
+  output logic validConfigOut,
+  input AgentPkg::GateConfig configValue,
+  AXI4S.Master out [NUMBER_OF_STAGES - 1:0],  
+  AXI4S.Master passThroughOut [NUMBER_OF_STAGES - 1:0],
+  AXI4S.Slave in [NUMBER_OF_STAGES - 1:0], 
+  AXI4S.Slave passThroughIn [NUMBER_OF_STAGES - 1:0] 
+);
+
+/////////////////////////////////////////////////////////////////
+// Local nets
+/////////////////////////////////////////////////////////////////
+AgentPkg::GateConfig configValues [NUMBER_OF_STAGES - 1: 0];
+
+/////////////////////////////////////////////////////////////////
+// Distributor
+/////////////////////////////////////////////////////////////////
+
+ConfigDistributor #(
+  .type_of_config(AgentPkg::GateConfig),
+  .NUMBER_OF_STAGES(NUMBER_OF_STAGES)
+) distributor (
+  .clk(clk),
+  .resetn(resetn),
+  .validIn(validConfigIn),
+  .store(configValue),
+  .validOut(validConfigOut),
+  .configValue(configValues)
+);
+
+/////////////////////////////////////////////////////////////////
+// Stages
+/////////////////////////////////////////////////////////////////
+genvar i;
+for (i=0; i<NUMBER_OF_STAGES; i++) begin
+  StreamingGate #(
+  .NUMBER_OF_INPUT_WIRES(NUMBER_OF_INPUT_WIRES)
+  ) streaming_gate (
+  .clk(clk),
+  .resetn(resetn),
+  .passThrough(passThrough),
+  .gateChoice(configValues[i].gateSelect),
+  .aSelect(configValues[i].aSelect),
+  .bSelect(configValues[i].bSelect),
+  .cSelect(configValues[i].cSelect),
+  .out(out[i]),  
+  .passThroughOut(passThroughOut[i]),
+  .in(in[i]), 
+  .passThroughIn(passThroughIn[i]) 
+);
+end
 
 endmodule
 
