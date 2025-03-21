@@ -15,6 +15,83 @@ assign output_val[1] = control ? input_val[0] : input_val[1];
 
 endmodule
 
+module rotate #(
+  type data_type = PermutationPkg::FiveWireType,
+  parameter SIZE = 5
+) (
+  input data_type input_val,
+  output data_type output_val,
+  input wire control
+);
+
+data_type rotated;
+
+genvar i;
+for(i = 1; i < SIZE; i ++)
+assign rotated[i - 1] = input_val[i];
+
+assign rotated[SIZE - 1] = input_val[0];
+//swap
+assign output_val = control ? rotated : input_val;
+
+endmodule
+
+module riffle #(
+  type data_type = PermutationPkg::FiveWireType,
+  parameter SIZE = 5
+) (
+  input data_type input_val,
+  output data_type output_val,
+  input wire control
+);
+
+data_type riffle_even;
+localparam HALF_SIZE = SIZE / 2;
+//////////////////////////////////////////////////////////////////////////////////////
+// even riffle
+//////////////////////////////////////////////////////////////////////////////////////
+genvar i;
+for(i = 0; i <= HALF_SIZE; i ++)
+begin
+if ( i == HALF_SIZE )
+begin
+  if (2*i < SIZE)
+  assign riffle_even[2*i] = input_val[i];
+  if (((2*i)+1) < SIZE)
+  assign riffle_even[2*i + 1] = input_val[i + HALF_SIZE];
+end
+else 
+begin
+  assign riffle_even[2*i] = input_val[i];  
+  assign riffle_even[2*i + 1] = input_val[i + HALF_SIZE];  
+end
+end
+
+//////////////////////////////////////////////////////////////////////////////////////
+// odd riffle
+//////////////////////////////////////////////////////////////////////////////////////
+data_type riffle_odd;
+for(i = 0; i <= HALF_SIZE; i ++)
+begin
+if ( i == HALF_SIZE )
+begin
+  if (2*i < SIZE)
+  assign riffle_even[2*i] = input_val[i + HALF_SIZE];
+  if (((2*i)+1) < SIZE)
+  assign riffle_even[2*i + 1] = input_val[i];
+end
+else 
+begin
+  assign riffle_even[2*i] = input_val[i + HALF_SIZE];  
+  assign riffle_even[2*i + 1] = input_val[i];  
+end
+end
+
+//swap
+assign output_val = control ? riffle_even : riffle_odd;
+
+endmodule
+
 module swap_3 #(
     type data_type = PermutationPkg::NibbleType
 ) (
