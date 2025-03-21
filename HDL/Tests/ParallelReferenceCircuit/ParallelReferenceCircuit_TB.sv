@@ -129,7 +129,7 @@ begin
 
   #10 resetn = 1;
 
-  #105000 $finish();
+#105000 $finish();
 end
 
 

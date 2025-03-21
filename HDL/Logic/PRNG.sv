@@ -64,8 +64,21 @@ end
 end
 else
 begin
-assign randomNumber = random_number[OUTPUT_SIZE - 1:0];
-assign valid = next;
+// assign randomNumber = random_number[OUTPUT_SIZE - 1:0];
+// assign valid = next;
+always_ff @ (posedge clk)
+begin
+if(resetn)
+begin
+  valid <= next;
+  randomNumber <= random_number[OUTPUT_SIZE - 1:0];
+end
+else
+begin
+  valid <= 0;
+  randomNumber <= 0;
+end
+end
 end
 
 endmodule

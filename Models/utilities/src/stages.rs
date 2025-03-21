@@ -1,5 +1,3 @@
-use std::fmt::format;
-
 use crate::bitfield::BitFeild;
 use crate::lfsrs::LFSR16;
 

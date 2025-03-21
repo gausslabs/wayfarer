@@ -3,6 +3,9 @@
 
 package PermutationPkg;
 
+typedef logic [3:0] NibbleType;
+typedef logic [0:4] [3:0] FiveWireType;
+
 typedef enum logic [1:0] { 
   WIRES_05,
   WIRES_11,
@@ -100,7 +103,7 @@ localparam GATE_CONFIG_IN_STREAM = (GATE_CONFIG_SIZE + (DATA_WIDTH - 1)) / DATA_
 localparam GATE_CONFIG_COUNT_SIZE = $clog2(GATE_CONFIG_IN_STREAM);
 
 typedef logic [(DATA_WIDTH/2) - 1:0] nibbleType;
-typedef logic [DATA_WIDTH - 1:0] byteType;
+typedef logic [DATA_WIDTH - 1:0] NibbleType;
 
 typedef struct packed {
     nibbleType gateSelect;

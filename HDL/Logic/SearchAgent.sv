@@ -34,7 +34,7 @@
 // │                                                       │                                                  │
 // └───────────────────────────────────────────────────────│──────────────────────────────────────────────────┘
 //                                                       Config Stream
-
+(* DONT_TOUCH = "TRUE" *)
 module SearchAgent #(
     type id_type   = StreamSelectionPkg::agentID,
     parameter id_type SELECTION_VALUE = 'd2
@@ -50,9 +50,9 @@ module SearchAgent #(
 //////////////////////////////////////////////////////////////////////////////////////
 localparam NUMBER_OF_STAGES = AgentPkg::NUMBER_OF_STAGES;
 localparam LIMIT = NUMBER_OF_STAGES;
-AXI4S #(.DATA_WIDTH(StreamSelectionPkg::StreamData)) selceted_stream();
-AXI4S #(.DATA_WIDTH(StreamSelectionPkg::AgentConfig))  extracted_stream(), extracted_stream_buffered(), reference_stream(), search_stream(), reference_stream_selected(), search_stream_selected();
-AXI4S #(.DATA_WIDTH(AgentPkg::NUMBER_OF_INPUT_WIRES)) source(), passthrough_search(), search_source(), passthrough_ref(), ref_source(), passthrough_comparator(), comparator_source();
+(* DONT_TOUCH = "TRUE" *) AXI4S #(.DATA_WIDTH($bits(StreamSelectionPkg::StreamData))) selceted_stream();
+(* DONT_TOUCH = "TRUE" *) AXI4S #(.DATA_WIDTH($bits(StreamSelectionPkg::AgentConfig)))  extracted_stream(), extracted_stream_buffered(), reference_stream(), search_stream(), reference_stream_selected(), search_stream_selected();
+(* DONT_TOUCH = "TRUE" *) AXI4S #(.DATA_WIDTH(AgentPkg::NUMBER_OF_INPUT_WIRES)) source(), passthrough_search(), search_source(), passthrough_ref(), ref_source(), passthrough_comparator(), comparator_source();
 AgentPkg::GateConfig gateConfigs [NUMBER_OF_STAGES - 1:0];
 StreamSelectionPkg::AgentConfig incoming_config;
 logic lastReached, equal, foundCircuit ,loadRef ,loadSearch ,sample ,start, sampled;
@@ -78,8 +78,8 @@ ExtractAgentConfig #(
 ) extract_agent_config (
   .clk(clk),
   .resetn(resetn),
-  .in(extracted_stream),
-  .out(extracted_stream_buffered)
+  .in(selceted_stream),
+  .out(extracted_stream)
 );
 
 AXISFIFO #(
@@ -92,7 +92,7 @@ AXISFIFO #(
   .out(extracted_stream_buffered)
 );
 
-Tee config_splitter (
+(* DONT_TOUCH = "TRUE" *) Tee config_splitter (
   .streamOne(reference_stream),
   .streamTwo(search_stream),
   .in(extracted_stream_buffered)
@@ -123,7 +123,7 @@ StreamSelectBasedOnType #(
 //////////////////////////////////////////////////////////////////////////////////////
 // Data flow layer
 //////////////////////////////////////////////////////////////////////////////////////
-LinearSource #(
+(* DONT_TOUCH = "TRUE" *) LinearSource #(
   .DATA_WIDTH(AgentPkg::NUMBER_OF_INPUT_WIRES)
 ) lin_source (
   .clk(clk),
@@ -131,13 +131,13 @@ LinearSource #(
   .out(source)
 );
 
-Tee source_splitter (
+(* DONT_TOUCH = "TRUE" *) Tee source_splitter (
   .streamOne(passthrough_search),
   .streamTwo(search_source),
   .in(source)
 );
 
-SearchCircuitLayer search_circuit (
+(* DONT_TOUCH = "TRUE" *) SearchCircuitLayer search_circuit (
   .clk(clk),
   .resetn(resetn),
   .load((~start) & loadSearch),
@@ -151,7 +151,7 @@ SearchCircuitLayer search_circuit (
   .configuration(search_stream_selected)
 );
 
-ReferenceCircuitLayer reference_circuit (
+(* DONT_TOUCH = "TRUE" *) ReferenceCircuitLayer reference_circuit (
   .clk(clk),
   .resetn(resetn),
   .start(start & (~loadRef)),
@@ -163,7 +163,7 @@ ReferenceCircuitLayer reference_circuit (
   .configuration(reference_stream_selected)
 );
 
-AXISComparator comparator (
+(* DONT_TOUCH = "TRUE" *) AXISComparator comparator (
   .clk(clk),
   .resetn(resetn),
   .in1(comparator_source),
@@ -177,7 +177,7 @@ AXISComparator comparator (
 //////////////////////////////////////////////////////////////////////////////////////
 assign incoming_config = extracted_stream_buffered.data;
 
-SearchAgenrController controller (
+(* DONT_TOUCH = "TRUE" *) SearchAgenrController controller (
   .clk(clk),
   .resetn(resetn),
   .equal(equal),
@@ -305,7 +305,8 @@ assign loadSearch = current_state == SEARCH_CONFIG;
 endmodule
 
 module LinearSource #(
-    parameter DATA_WIDTH = 5
+    parameter DATA_WIDTH = 5,
+    parameter LIMIT = (1 << DATA_WIDTH) - 1
 ) (
   input wire clk,
   input wire resetn,
@@ -315,7 +316,7 @@ module LinearSource #(
 // Internal nets
 //////////////////////////////////////////////////////////////////////////////////////
 logic [DATA_WIDTH:0] counter;
-parameter LIMIT = (1 << DATA_WIDTH) - 1;
+
 
 always_ff @ (posedge clk)
 begin

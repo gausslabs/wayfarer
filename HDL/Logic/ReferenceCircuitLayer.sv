@@ -107,4 +107,118 @@ StreamingGate #(
 end
 endmodule
 
+module ParrallelReferenceCircuitLayer #(
+  type type_of_store = AgentPkg::GateConfigStore,
+  type input_config_type = StreamSelectionPkg::AgentConfig,
+  parameter CONFIG_COUNT_SIZE = AgentPkg::GATE_CONFIG_COUNT_SIZE,
+  parameter STAGES_ID_WIDTH = AgentPkg::STAGES_ID_WIDTH,
+  parameter NUMBER_OF_STAGES = AgentPkg::NUMBER_OF_STAGES,
+  parameter NUMBER_OF_INPUT_WIRES = AgentPkg::NUMBER_OF_INPUT_WIRES,
+  parameter NUMBER_OF_GATES = 2,
+  parameter CHOICE_WIDTH = AgentPkg::CHOICE_WIDTH
+) (
+  input wire clk,
+  input wire resetn,
+  input wire start,
+  output wire loaded,
+  AXI4S.Master out[NUMBER_OF_GATES - 1:0],
+  AXI4S.Master passThroughOut[NUMBER_OF_GATES - 1:0],
+  AXI4S.Slave in[NUMBER_OF_GATES - 1:0],
+  AXI4S.Slave passThroughIn[NUMBER_OF_GATES - 1:0],
+  AXI4S.Slave configuration
+);
+/////////////////////////////////////////////////////////////////
+// internal values
+/////////////////////////////////////////////////////////////////
+type_of_store configs [NUMBER_OF_STAGES - 1:0];
+logic [NUMBER_OF_STAGES - 1:0] packed_valids;
+logic [NUMBER_OF_STAGES - 1:0] gate_valids;
+
+AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) gate_internal[NUMBER_OF_GATES - 1:0][NUMBER_OF_STAGES:0]();
+AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) passThrough[NUMBER_OF_GATES - 1:0][NUMBER_OF_STAGES:0]();
+
+/////////////////////////////////////////////////////////////////
+// configurations
+/////////////////////////////////////////////////////////////////
+ReferenceStorage #(
+  .type_of_store(type_of_store),
+  .input_data_type(input_config_type),
+  .CONFIG_COUNT_SIZE(CONFIG_COUNT_SIZE),
+  .STAGES_ID_WIDTH(STAGES_ID_WIDTH),
+  .NUMBER_OF_STAGES(NUMBER_OF_STAGES)
+) config_extraction (
+  .clk(clk),
+  .resetn(resetn),
+  .validOut(packed_valids),
+  .out(configs),
+  .in(configuration)
+);
+
+assign loaded = &packed_valids;
+
+/////////////////////////////////////////////////////////////////
+// input and output connection
+/////////////////////////////////////////////////////////////////
+
+PassthroughNArray #(
+  .NUMBER_OF_STREAMS(NUMBER_OF_GATES)
+) connect_in_and_gate (
+  .clk(clk),
+  .resetn(resetn & start),
+  .out(gate_internal[0]),
+  .in(in)
+);
+
+PassthroughNArray #(
+  .NUMBER_OF_STREAMS(NUMBER_OF_GATES)
+) connect_passthrough_in (
+  .clk(clk),
+  .resetn(resetn & start),
+  .out(passThrough[0]),
+  .in(passThroughIn)
+);
+
+PassthroughNArray #(
+  .NUMBER_OF_STREAMS(NUMBER_OF_GATES)
+) connect_passthrough_out (
+  .clk(clk),
+  .resetn(resetn & start),
+  .out(passThroughOut),
+  .in(passThrough[NUMBER_OF_STAGES])
+);
+
+PassthroughNArray #(
+  .NUMBER_OF_STREAMS(NUMBER_OF_GATES)
+) connect_gate_and_out (
+  .clk(clk),
+  .resetn(resetn & start),
+  .out(out),
+  .in(gate_internal[NUMBER_OF_STAGES])
+);
+
+/////////////////////////////////////////////////////////////////
+// gate data flow
+/////////////////////////////////////////////////////////////////
+genvar i;
+for(i =0 ; i < NUMBER_OF_STAGES; i++)
+begin
+ParallelStreamGates #(
+  .NUMBER_OF_STAGES(),
+  .NUMBER_OF_INPUT_WIRES(NUMBER_OF_INPUT_WIRES),
+  .CHOICE_WIDTH(CHOICE_WIDTH)
+) gate (
+  .clk(clk),
+  .resetn(resetn & start),
+  .passThrough(AgentPkg::is_passthrough(configs[i])),
+  .configValue(configs[i].configValue),
+  .validConfigIn(packed_valids[i]),
+  .validConfigOut(gate_valids[i]),
+  .in(gate_internal[i]),
+  .passThroughIn(passThrough[i]),
+  .passThroughOut(passThrough[i + 1]),
+  .out(gate_internal[i + 1])
+);
+end
+endmodule
+
 `endif

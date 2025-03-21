@@ -99,4 +99,25 @@ assign in.ready = out.ready & resetn;
 
 endmodule
 
+module PassthroughNArray #(
+  NUMBER_OF_STREAMS = 2
+) (
+  input wire clk,
+  input wire resetn,
+  AXI4S.Master out [NUMBER_OF_STREAMS - 1:0],
+  AXI4S.Slave in[NUMBER_OF_STREAMS - 1:0]
+);
+
+genvar i;
+for (i=0; i<NUMBER_OF_STREAMS; i++) begin
+Passthrough passthrough (
+  .clk(clk),
+  .resetn(resetn),
+  .out(out[i]),
+  .in(in[i])
+);
+end
+
+endmodule
+
 `endif
