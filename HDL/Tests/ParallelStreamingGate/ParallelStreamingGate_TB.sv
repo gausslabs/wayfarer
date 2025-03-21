@@ -3,10 +3,10 @@ module ParallelStreamingGate_TB ();
 logic clk, resetn, test_pass, equal_source, equal_gate;
 
 localparam NUMBER_OF_INPUT_WIRES = 5;
-localparam NUMBER_OF_STAGES = 1;
+localparam NUMBER_OF_STAGES = 2;
 localparam CHOICE_WIDTH          = $clog2(NUMBER_OF_INPUT_WIRES);
 
-AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) gateIn[NUMBER_OF_STAGES - 1:0](), gateOut[NUMBER_OF_STAGES - 1:0](), pass_through_in[NUMBER_OF_STAGES - 1:0](), pass_through_out[NUMBER_OF_STAGES - 1:0](), reference();
+AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) gateIn[NUMBER_OF_STAGES - 1:0](), gateOut[NUMBER_OF_STAGES - 1:0](), pass_through_in[NUMBER_OF_STAGES - 1:0](), pass_through_out[NUMBER_OF_STAGES - 1:0](), reference(), reference_gate(), reference_passthrough();
 AgentPkg::GateConfig configValue;
 logic [3:0] gateChoice;
 logic [CHOICE_WIDTH - 1: 0] aSelect ,bSelect ,cSelect;
@@ -31,10 +31,22 @@ AXISSource #(
   .out(reference)
 );
 
-Tee tee (
-  .streamOne(gateIn[0]),
-  .streamTwo(pass_through_in[0]),
+Tee tee_1 (
+  .streamOne(reference_gate),
+  .streamTwo(reference_passthrough),
   .in(reference)
+);
+
+Tee tee_gate (
+  .streamOne(gateIn[0]),
+  .streamTwo(gateIn[1]),
+  .in(reference_gate)
+);
+
+Tee tee_passthrough (
+  .streamOne(pass_through_in[0]),
+  .streamTwo(pass_through_in[1]),
+  .in(reference_passthrough)
 );
 
 ///////////////////////////////////////////////////
@@ -67,9 +79,9 @@ AXISReferenceComparator #(
   .DATA_WIDTH(NUMBER_OF_INPUT_WIRES),
   .ADDR_WIDTH(INPUT_ADDR_WIDTH),
   .LIMIT(INPUT_LIMIT),
-  .NAME("passthrough"),
+  .NAME("passthrough-0"),
   .SOURCE_FILE(INPUT_SOURCE_FILE)
-) pass_through_output_comparator (
+) pass_through_output_comparator_0 (
   .clk(clk),
   .resetn(resetn),
   .test_pass(equal_source),
@@ -79,14 +91,40 @@ AXISReferenceComparator #(
 AXISReferenceComparator #(
   .DATA_WIDTH(NUMBER_OF_INPUT_WIRES),
   .ADDR_WIDTH(OUTPUT_ADDR_WIDTH),
-  .NAME("gateOut"),
+  .NAME("gateOut-0"),
   .LIMIT(OUTPUT_LIMIT),
   .SOURCE_FILE(OUTPUT_SOURCE_FILE)
-) gate_output_comparator (
+) gate_output_comparator_0 (
   .clk(clk),
   .resetn(resetn),
   .test_pass(equal_gate),
   .in(gateOut[0]) 
+);
+
+AXISReferenceComparator #(
+  .DATA_WIDTH(NUMBER_OF_INPUT_WIRES),
+  .ADDR_WIDTH(INPUT_ADDR_WIDTH),
+  .LIMIT(INPUT_LIMIT),
+  .NAME("passthrough-1"),
+  .SOURCE_FILE(INPUT_SOURCE_FILE)
+) pass_through_output_comparator_1 (
+  .clk(clk),
+  .resetn(resetn),
+  .test_pass(),
+  .in(pass_through_out[1]) 
+);
+
+AXISReferenceComparator #(
+  .DATA_WIDTH(NUMBER_OF_INPUT_WIRES),
+  .ADDR_WIDTH(OUTPUT_ADDR_WIDTH),
+  .NAME("gateOut-1"),
+  .LIMIT(OUTPUT_LIMIT),
+  .SOURCE_FILE(OUTPUT_SOURCE_FILE)
+) gate_output_comparator_1 (
+  .clk(clk),
+  .resetn(resetn),
+  .test_pass(),
+  .in(gateOut[1]) 
 );
 
 assign test_pass = equal_gate & equal_source;
