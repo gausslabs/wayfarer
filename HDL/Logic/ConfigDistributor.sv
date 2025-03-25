@@ -1,6 +1,25 @@
 `ifndef CONFIG_DISTRIBUTOR
  `define CONFIG_DISTRIBUTOR
 
+//                                    ┌──────────────┐
+//         ┌───────┐                  │Config->      │
+//         │       ┼─────────────────►│              │
+//         │Config │                  │              │
+//  Config─► Reg   ┼───────────┐      └──────────────┘
+//         │       │           │
+//         │       │           │
+//         │       ┼────────┐  │      ┌──────────────┐
+//         └───────┘        │  │      │Config->      │
+//                          │  └──────►              │
+//                          │         │              │
+//                          │         └──────────────┘
+//                          │
+//                          │         ┌──────────────┐
+//                          │         │Config->      │
+//                          └─────────►              │
+//                                    │              │
+//                                    └──────────────┘
+
 module ConfigDistributor #(
   type type_of_config = AgentPkg::GateConfig,
   parameter NUMBER_OF_STAGES = 8
