@@ -1,6 +1,26 @@
 `ifndef AGENT_CONFIG_STORE
  `define AGENT_CONFIG_STORE
 
+//                                         Data Store 
+//                                       ┌───────────┐
+//                                       │            
+//                        ┌─────┐        │           │
+//                        │     ┼────────►           │
+//                        │Addr │        ┌───────────┼
+// ────┐[Data,Valid]──────►Mux  │        │           │
+//     │                  │     │        │           │
+//     │                  │     │        │           │
+//     │                  │     │        ┼───────────┼
+//     │                  └──▲──┘        │     │     │
+//     │                     │           │           │
+//     │                     │           │     │     │
+//     │                     │           │           │
+//     │        ┌───────┐    │           │     │     │
+//     └──Valid─►Counter│    │           ┼───────────┼
+//              │       ┼────┘           │           │
+//              │       │                │           │
+//              └───────┘                └───────────┘
+
 module ReferenceConfigExtraction #(
     type type_of_store = AgentPkg::GateConfigStore,
     type input_data_type = StreamSelectionPkg::AgentConfig,

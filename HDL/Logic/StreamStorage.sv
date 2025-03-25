@@ -1,6 +1,25 @@
 `ifndef STREAM_STORAGE
  `define STREAM_STORAGE
 
+//                                                          ┌──────────────┐
+//                               ┌───────┐                  │Config-Extract│
+// ┌─────┐                       │       ┼─────────────────►│              │
+// │FIFO │                       │Stream │                  │              │
+// │     │────┐[Stream    ]──────►Mux    ┼───────────┐      └──────────────┘
+// │     │    │                  │       │           │
+// └─────┘    │                  │       │           │
+//            │                  │       ┼────────┐  │      ┌──────────────┐
+//            │                  └──▲────┘        │  │      │Config-Extract│
+//            │                     │             │  └──────►              │
+//            │                     │             │         │              │
+//            │                     │             │         └──────────────┘
+//            └──Stream─ID──────────┘             │
+//                                                │         ┌──────────────┐
+//                                                │         │Config-Extract│
+//                                                └─────────►              │
+//                                                          │              │
+//                                                          └──────────────┘
+
 module ReferenceStorage #(
     type type_of_store = AgentPkg::GateConfigStore,
     type input_data_type = StreamSelectionPkg::AgentConfig,

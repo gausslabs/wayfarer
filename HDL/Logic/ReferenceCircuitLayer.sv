@@ -107,6 +107,28 @@ StreamingGate #(
 end
 endmodule
 
+//            ┌───────┐ ┌───────┐ ┌───────┐        ┌──────┐            
+//            │       │ │       │ │       │        │      │           D
+// D  ────────►P-Gate │ │P-Gate │ │P-Gate │ ────── │P-Gate┼──────►    A
+// A          │       │ │       │ │       │        │      │           T
+// T  ────────►       │ │       │ │       │        │      ┼──────►    A
+// A          │       │ │       │ │       │ ────── │      │           S
+// S  ────────►       │ │       │ │       │        │      ┼──────►    T
+// T          │       │ │       │ │       │ ────── │      │           R
+// R  ────────►       │ │       │ │       │        │      ┼──────►    E
+// E          │       │ │       │ │       │ ───────┤      │           A
+// A          └───▲───┘ └───▲───┘ └───▲───┘        └───▲──┘           M
+// M              │         │         │                │
+//                │         │         │                │
+//                └─────────┴┬────────┼──────┬─────────┘               
+//                           │               │
+//                           │ Config stream │
+//                           │      to       │
+//                           │    config     │
+//                           └───────▲───────┘
+//                                   │
+//                      ───Config────┘
+
 module ParrallelReferenceCircuitLayer #(
   type type_of_store = AgentPkg::GateConfigStore,
   type input_config_type = StreamSelectionPkg::AgentConfig,
