@@ -12,4 +12,3 @@ xsim.dir/
 *.hex
 target/
 *_proj/
-Cargo.lock
