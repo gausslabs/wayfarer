@@ -1,23 +1,29 @@
-load("@rules_rust//rust:repositories.bzl", "rust_register_toolchains")
-rust_register_toolchains(
-    versions=["1.81.0"],
+# load("@rules_rust//rust:repositories.bzl", "rust_register_toolchains", "rules_rust_dependencies")
+# rules_rust_dependencies()
+# rust_register_toolchains(
+#     edition = "2021",
+#     versions=["1.81.0"],
     
-    # Specifies the Rust edition to use for the registered toolchains
-)
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
-
-# ------------------------------
-# Set up rules_rust
-# ------------------------------
-# http_archive(
-#     name = "rules_rust",
-#     url = "https://github.com/bazelbuild/rules_rust/archive/refs/tags/0.28.0.tar.gz",
-#     strip_prefix = "rules_rust-0.28.0",
-#     sha256 = "8ce14a6b10bdfb767958e19f5c85ddc9dc0e6afde91f77ab0d2b0f34417bba4b",
+#     # Specifies the Rust edition to use for the registered toolchains
 # )
 
-# load("@rules_rust//rust:repositories.bzl", "rust_repositories")
-# rust_repositories()
 
-# load("@crate__rand_core//:repositories.bzl", "cargo_raze_repositories")
-# cargo_raze_repositories()
+
+# load("@rules_rust//crate_universe:repositories.bzl", "crate_universe_dependencies")
+
+# crate_universe_dependencies(bootstrap = True)
+
+# load("@rules_rust//crate_universe:defs.bzl", "crates_repository")
+
+# crates_repository(
+#     name = "utilities",
+#     cargo_lockfile = "//Models/utilities:Cargo.lock",
+#     # `generator` is not necessary in official releases.
+#     # See load satement for `cargo_bazel_bootstrap`.
+#     generator = "@cargo_bazel_bootstrap//:cargo-bazel",
+#     manifests = ["//Models/utilities:Cargo.toml"],
+# )
+
+# load("@crates_from_cargo_workspace//:defs.bzl", "crate_repositories")
+
+# crate_repositories()

@@ -46,7 +46,7 @@ fn main() {
             std::process::exit(1);
         }
     };
-    const NUMBER_OF_GATES: usize = 6;
+    const NUMBER_OF_GATES: usize = 5;
     const NUMBER_OF_WIRES: usize = (2 * NUMBER_OF_GATES) + 1;
     const PASSTHROUGH: bool = false;
     let mut rng = rand::thread_rng();

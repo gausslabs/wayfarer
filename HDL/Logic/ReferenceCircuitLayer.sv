@@ -134,8 +134,8 @@ type_of_store configs [NUMBER_OF_STAGES - 1:0];
 logic [NUMBER_OF_STAGES - 1:0] packed_valids;
 logic [NUMBER_OF_STAGES - 1:0] gate_valids;
 
-AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) gate_internal[NUMBER_OF_GATES - 1:0][NUMBER_OF_STAGES:0]();
-AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) passThrough[NUMBER_OF_GATES - 1:0][NUMBER_OF_STAGES:0]();
+AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) gate_internal[NUMBER_OF_STAGES:0][NUMBER_OF_GATES - 1:0]();
+AXI4S #(.DATA_WIDTH(NUMBER_OF_INPUT_WIRES)) passThrough[NUMBER_OF_STAGES:0][NUMBER_OF_GATES - 1:0]();
 
 /////////////////////////////////////////////////////////////////
 // configurations
@@ -203,7 +203,7 @@ genvar i;
 for(i =0 ; i < NUMBER_OF_STAGES; i++)
 begin
 ParallelStreamGates #(
-  .NUMBER_OF_STAGES(),
+  .NUMBER_OF_STAGES(NUMBER_OF_GATES),
   .NUMBER_OF_INPUT_WIRES(NUMBER_OF_INPUT_WIRES),
   .CHOICE_WIDTH(CHOICE_WIDTH)
 ) gate (

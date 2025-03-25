@@ -1,17 +1,18 @@
 module ParallelReferenceCircuit_TB ();
 
 logic clk, resetn, test_pass, equal_ref, equal_gate;
-
-AXI4S #(.DATA_WIDTH($bits(AgentPkg::NUMBER_OF_INPUT_WIRES)))   source(), in(), passThroughIn(), passThroughOut(), out();
+localparam NUMBER_OF_GATES = 1;
+AXI4S #(.DATA_WIDTH($bits(AgentPkg::NUMBER_OF_INPUT_WIRES)))   source(), in[NUMBER_OF_GATES - 1:0](), passThroughIn[NUMBER_OF_GATES - 1:0](), passThroughOut[NUMBER_OF_GATES - 1:0](), out[NUMBER_OF_GATES - 1:0]();
 AXI4S #(.DATA_WIDTH($bits(StreamSelectionPkg::AgentConfig))) configuration();
 ///////////////////////////////////////////////////
 // Input Source
 ///////////////////////////////////////////////////
-localparam INPUT_DATA_LIMIT        = (1 << AgentPkg::NUMBER_OF_INPUT_WIRES) - 1;
+localparam NUMBER_OF_INPUT_WIRES = 11;
+localparam INPUT_DATA_LIMIT        = (1 << NUMBER_OF_INPUT_WIRES) - 1;
 localparam INPUT_DATA_ADDR_WIDTH   = $clog2(INPUT_DATA_LIMIT);
 localparam INPUT_DATA_SOURCE_FILE = "streamInput.hex";
 AXISSource #(
-  .DATA_WIDTH(AgentPkg::NUMBER_OF_INPUT_WIRES),
+  .DATA_WIDTH(NUMBER_OF_INPUT_WIRES),
   .ADDR_WIDTH(INPUT_DATA_ADDR_WIDTH),
   .LIMIT(INPUT_DATA_LIMIT),
   .SOURCE_FILE(INPUT_DATA_SOURCE_FILE)
@@ -24,7 +25,7 @@ AXISSource #(
 ///////////////////////////////////////////////////
 // Input 
 ///////////////////////////////////////////////////
-localparam INPUT_CONFIG_LIMIT        = 12;
+localparam INPUT_CONFIG_LIMIT        = 10;
 localparam INPUT_CONFIG_ADDR_WIDTH   = $clog2(INPUT_CONFIG_LIMIT);
 localparam INPUT_CONFIG_SOURCE_FILE = "config.hex";
 AXISSource #(
@@ -43,12 +44,15 @@ AXISSource #(
 ///////////////////////////////////////////////////
 
 Tee source_tee (
-  .streamOne(passThroughIn),
-  .streamTwo(in),
+  .streamOne(passThroughIn[0]),
+  .streamTwo(in[0]),
   .in(source)
 );
-
-ReferenceCircuitWrapper dut (
+localparam NUMBER_OF_STAGES = 5;
+ParallelReferenceCircuitWrapper #(
+  .NUMBER_OF_GATES(NUMBER_OF_GATES),
+  .NUMBER_OF_STAGES(NUMBER_OF_STAGES)
+) dut (
   .clk(clk),
   .resetn(resetn),
   .out(out),
@@ -62,15 +66,15 @@ ReferenceCircuitWrapper dut (
 ///////////////////////////////////////////////////
 // Output comparrison
 ///////////////////////////////////////////////////
-localparam GATE_OUTPUT_LIMIT      = (1 << AgentPkg::NUMBER_OF_INPUT_WIRES) - 1;
+localparam GATE_OUTPUT_LIMIT      = (1 << NUMBER_OF_INPUT_WIRES) - 1;
 localparam GATE_OUTPUT_ADDR_WIDTH = $clog2(GATE_OUTPUT_LIMIT);
-localparam REFERENCE_OUTPUT_LIMIT      = (1 << AgentPkg::NUMBER_OF_INPUT_WIRES) - 1;
+localparam REFERENCE_OUTPUT_LIMIT      = (1 << NUMBER_OF_INPUT_WIRES) - 1;
 localparam REFERENCE_OUTPUT_ADDR_WIDTH = $clog2(REFERENCE_OUTPUT_LIMIT);
 localparam REF_OUTPUT_SOURCE_FILE = "referenceStream.hex";
 localparam GATE_OUTPUT_SOURCE_FILE = "gateStream.hex";
 
 AXISReferenceComparator #(
-  .DATA_WIDTH(AgentPkg::NUMBER_OF_INPUT_WIRES),
+  .DATA_WIDTH(NUMBER_OF_INPUT_WIRES),
   .ADDR_WIDTH(REFERENCE_OUTPUT_ADDR_WIDTH),
   .LIMIT(REFERENCE_OUTPUT_LIMIT),
   .NAME("Reference"),
@@ -79,11 +83,11 @@ AXISReferenceComparator #(
   .clk(clk),
   .resetn(resetn),
   .test_pass(equal_ref),
-  .in(passThroughOut) 
+  .in(passThroughOut[0]) 
 );
 
 AXISReferenceComparator #(
-  .DATA_WIDTH(AgentPkg::NUMBER_OF_INPUT_WIRES),
+  .DATA_WIDTH(NUMBER_OF_INPUT_WIRES),
   .ADDR_WIDTH(GATE_OUTPUT_ADDR_WIDTH),
   .NAME("GATE"),
   .LIMIT(GATE_OUTPUT_LIMIT),
@@ -92,7 +96,7 @@ AXISReferenceComparator #(
   .clk(clk),
   .resetn(resetn),
   .test_pass(equal_gate),
-  .in(out) 
+  .in(out[0]) 
 );
 
 assign test_pass = equal_gate & equal_ref;
