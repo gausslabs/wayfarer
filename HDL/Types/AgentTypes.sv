@@ -3,8 +3,10 @@
 
 package PermutationPkg;
 
-typedef logic [3:0] NibbleType;
-typedef logic [0:4] [3:0] FiveWireType;
+parameter WIRE_SIZE = 4;
+
+typedef logic [WIRE_SIZE - 1:0] NibbleType;
+typedef logic [0:4] [WIRE_SIZE - 1:0] FiveWireType;
 
 typedef enum logic [1:0] { 
   WIRES_05,

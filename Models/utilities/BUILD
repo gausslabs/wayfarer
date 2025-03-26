@@ -1,4 +1,5 @@
 load("@rules_rust//rust:defs.bzl", "rust_library")
+load("@rules_rust//crate_universe:defs.bzl", "all_crate_deps")
 
 rust_library(
     name = "utilities",
@@ -8,6 +9,8 @@ rust_library(
     crate_root = "src/lib.rs",
     
     visibility = ["//:__subpackages__"],
+
+    deps = all_crate_deps(),
 
     edition = "2021"
     
