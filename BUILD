@@ -29,3 +29,11 @@ vivado_sim_proj(
   top_module = "SearchCircuit_TB",
   hex_files = ["streamInput.hex","config.hex","referenceStream.hex","searchStream.hex"]
 )
+
+vivado_sim_proj(
+  name = "simple_collision_test",
+  srcs = glob(["HDL/Types/*.sv", "HDL/Logic/*.sv", "HDL/Tests/Infra/*.sv", "HDL/Generated/*.sv", "HDL/Tests/SimpleTests/*.sv"]),
+  includes = ["./HDL/Types", "./HDL/Logic", "./HDL/Tests/Infra", "./HDL/Generated", "./HDL/Tests/SimpleTests"],
+  top_module = "RowCollisionCheck_TB",
+  hex_files = []
+)
