@@ -1,0 +1,17 @@
+[tasks]
+bmc
+
+[options]
+bmc: mode bmc
+depth 10
+
+[engines]
+smtbmc
+
+[script]
+read -formal -sv Arbiter_Formal.sv
+prep -top Arbiter_Formal
+
+[files]
+Arbiter_Formal.sv
+../../../Logic/Arbiter.sv
