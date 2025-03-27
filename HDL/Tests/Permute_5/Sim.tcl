@@ -6,6 +6,6 @@ foreach i $src_dirs {
     }
 }
 
-exec xelab -debug typical -top SearchCircuit_TB -snapshot Permute_5_tb_snapshot
+exec xelab -debug typical -top Permute_5_TB -snapshot Permute_5_tb_snapshot
 
 exec xsim Permute_5_tb_snapshot -R

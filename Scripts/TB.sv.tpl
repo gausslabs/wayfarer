@@ -2,7 +2,8 @@ module %NAME%_TB ();
 
 logic clk, resetn, test_pass, equal;
 localparam NUMBER_OF_GATES = 1;
-AXI4S #(.DATA_WIDTH($bits(AgentPkg::NUMBER_OF_INPUT_WIRES)))   source(), in(), passThroughIn(), passThroughOut(), out();
+localparam DATA_SIZE = ;
+AXI4S #(.DATA_WIDTH(DATA_SIZE))  source(), configuration() out();
 ///////////////////////////////////////////////////
 // Input Source
 ///////////////////////////////////////////////////
@@ -63,7 +64,7 @@ AXISReferenceComparator #(
   .in(out) 
 );
 
-assign test_pass = equal
+assign test_pass = equal;
 
 ///////////////////////////////////////////////////
 // Running the test

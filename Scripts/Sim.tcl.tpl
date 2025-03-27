@@ -6,6 +6,6 @@ foreach i $src_dirs {
     }
 }
 
-exec xelab -debug typical -top SearchCircuit_TB -snapshot %NAME%_tb_snapshot
+exec xelab -debug typical -top %NAME%_TB -snapshot %NAME%_tb_snapshot
 
 exec xsim %NAME%_tb_snapshot -R

@@ -37,3 +37,11 @@ vivado_sim_proj(
   top_module = "RowCollisionCheck_TB",
   hex_files = []
 )
+
+vivado_sim_proj(
+  name = "Permute_5",
+  srcs = glob(["HDL/Types/*.sv", "HDL/Logic/*.sv", "HDL/Tests/Infra/*.sv", "HDL/Generated/*.sv", "HDL/Tests/Permute_5/*.sv"]),
+  includes = ["./HDL/Types", "./HDL/Logic", "./HDL/Tests/Infra", "./HDL/Generated", "./HDL/Tests/Permute_5"],
+  top_module = "Permute_5_TB",
+  hex_files = ["streamInput.hex","config.hex","referenceStream.hex"]
+)
