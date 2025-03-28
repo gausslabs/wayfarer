@@ -7,15 +7,25 @@ module Mod11 (
   AXI4S.Master out,
   AXI4S.Slave in 
 );
+initial
+begin
+  input_size: assert ($bits(in.data) == 10)
+    else
+    begin
+    $error("Assertion input_size failed!");
+    $finish;
+    end
+end
+
 localparam DATA_WIDTH = 6;
-localparam logic signed [DATA_WIDTH - 1:0] MOD_ARRAY [SIZE - 1:0] = {1, 2, 4, -3, 5, -1, -2, -4, 3, -5};
+localparam logic signed [DATA_WIDTH - 1:0] MOD_ARRAY [0:9] = {1, 2, 4, -3, 5, -1, -2, -4, 3, -5};
 
 logic [9:0] [DATA_WIDTH - 1:0] mod_data;
 
 genvar i;
 for (i=0; i<=9; i++) 
 begin
-    assign mod_data[i] = in.data[i] ? MOD_11[i] : 0;    
+    assign mod_data[i] = in.data[i] ? MOD_ARRAY[i] : 0;    
 end
 
 AXI4S #(.DATA_WIDTH(DATA_WIDTH)) mod_out();
@@ -27,7 +37,7 @@ assign mod_in.data = mod_data;
 
 TreeAdder #(
   .DATA_WIDTH(DATA_WIDTH),
-  .ARRAY_SIZE(9),
+  .ARRAY_SIZE(9)
 ) adder (
   .clk(clk),
   .resetn(resetn),
@@ -35,6 +45,7 @@ TreeAdder #(
   .in(mod_in) 
 );
 
+assign mod_out.ready = out.ready;
 always_ff @ (posedge clk)
 begin
 if(resetn)
@@ -42,7 +53,7 @@ begin
     if (out.ready)
     begin
         out.valid <= mod_out.valid;
-        out.data <= $signed(mod_out.data) < 0: ($signed(mod_out.data) < -6'd11 ? mod_out.data + 6'd22 : mod_out.data + 6'd11 ) : (mod_out.data > 6'd11 ? mod_out.data - 6'd11 : mod_out.data);
+        out.data <= $signed(mod_out.data) < 0 ? ($signed(mod_out.data) < -6'd11 ? mod_out.data + 6'd22 : mod_out.data + 6'd11 ) : (mod_out.data > 6'd11 ? mod_out.data - 6'd11 : mod_out.data);
         out.last <= mod_out.last;
     end
 end

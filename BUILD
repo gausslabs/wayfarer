@@ -47,6 +47,14 @@ vivado_sim_proj(
 )
 
 vivado_sim_proj(
+  name = "Mod11_TB",
+  srcs = glob(["HDL/Types/*.sv", "HDL/Logic/*.sv", "HDL/Tests/Infra/*.sv", "HDL/Generated/*.sv", "HDL/Tests/SimpleTests/*.sv"]),
+  includes = ["./HDL/Types", "./HDL/Logic", "./HDL/Tests/Infra", "./HDL/Generated", "./HDL/Tests/SimpleTests"],
+  top_module = "Mod11_TB",
+  hex_files = []
+)
+
+vivado_sim_proj(
   name = "Permute_5",
   srcs = glob(["HDL/Types/*.sv", "HDL/Logic/*.sv", "HDL/Tests/Infra/*.sv", "HDL/Generated/*.sv", "HDL/Tests/Permute_5/*.sv"]),
   includes = ["./HDL/Types", "./HDL/Logic", "./HDL/Tests/Infra", "./HDL/Generated", "./HDL/Tests/Permute_5"],
