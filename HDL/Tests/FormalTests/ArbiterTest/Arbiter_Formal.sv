@@ -47,8 +47,12 @@ begin
   ////////////////////////////
   // Transition Check
   ////////////////////////////
+  // Holding same value
   if(((req == 3'b100 ) |(req == 3'b010 )|(req == 3'b001 ) | (req == 0)) & req == $past(req) & $stable(resetn))
     assert(grant == $past(grant));
+  // rotating through all 
+  if((req == 3'b111 ) & $stable(req) & $stable(resetn))
+    assert(grant == ($past(grant) << 1 | $past(grant) >> 2));
   ////////////////////////////
   // No 1
   ////////////////////////////

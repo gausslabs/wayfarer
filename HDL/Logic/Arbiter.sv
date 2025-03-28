@@ -5,7 +5,7 @@ module Arbiter3 (
   input wire clk,
   input wire resetn,
   input wire [2:0] req,
-  output wire [2:0] grant
+  output logic [2:0] grant
 );
 ///////////////////////////////////////////////////////
 // Internal nets
