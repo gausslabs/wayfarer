@@ -12,7 +12,7 @@ begin
   input_size: assert ($bits(in.data) == 10)
     else
     begin
-    $error("Assertion input_size failed!");
+    $error("Assertion input_size failed for mod 11!");
     $finish;
     end
 end
@@ -37,7 +37,7 @@ assign mod_in.data = mod_data;
 
 TreeAdder #(
   .DATA_WIDTH(DATA_WIDTH),
-  .ARRAY_SIZE(9)
+  .ARRAY_SIZE(10)
 ) adder (
   .clk(clk),
   .resetn(resetn),
@@ -53,7 +53,7 @@ begin
     if (out.ready)
     begin
         out.valid <= mod_out.valid;
-        out.data <= $signed(mod_out.data) < 0 ? ($signed(mod_out.data) < -6'd11 ? mod_out.data + 6'd22 : mod_out.data + 6'd11 ) : (mod_out.data > 6'd11 ? mod_out.data - 6'd11 : mod_out.data);
+        out.data[DATA_WIDTH - 1:0] <= $signed(mod_out.data) < 0 ? ($signed(mod_out.data) < -6'd11 ? mod_out.data + 6'd22 : mod_out.data + 6'd11 ) : (mod_out.data >= 6'd11 ? mod_out.data - 6'd11 : mod_out.data);
         out.last <= mod_out.last;
     end
 end
