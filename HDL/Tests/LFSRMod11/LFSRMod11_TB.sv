@@ -26,6 +26,7 @@ AXISReferenceComparator #(
   .ADDR_WIDTH(GATE_OUTPUT_ADDR_WIDTH),
   .NAME("LFSR10 Mod 11"),
   .LIMIT(GATE_OUTPUT_LIMIT),
+  .TOGGLE_READY(1),
   .SOURCE_FILE(GATE_OUTPUT_SOURCE_FILE)
 ) gate_comparator (
   .clk(clk),
