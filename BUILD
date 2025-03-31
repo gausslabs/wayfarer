@@ -2,7 +2,7 @@ load(":rtl.bzl", "lint_rtl", "vivado_sim_proj")
 
 lint_rtl(
   name = "lint_rtl",
-  top = "swap_5",
+  top = "PermuteNetwork10",
   include_dirs = ["./HDL/Types", "./HDL/Logic", "./HDL/Tests/Infra", "./HDL/Generated"],
 )
 
@@ -67,5 +67,13 @@ vivado_sim_proj(
   srcs = glob(["HDL/Types/*.sv", "HDL/Logic/*.sv", "HDL/Tests/Infra/*.sv", "HDL/Generated/*.sv", "HDL/Tests/Permute_5/*.sv"]),
   includes = ["./HDL/Types", "./HDL/Logic", "./HDL/Tests/Infra", "./HDL/Generated", "./HDL/Tests/Permute_5"],
   top_module = "Permute_5_TB",
+  hex_files = ["streamInput.hex","config.hex","referenceStream.hex"]
+)
+
+vivado_sim_proj(
+  name = "Permute_10",
+  srcs = glob(["HDL/Types/*.sv", "HDL/Logic/*.sv", "HDL/Tests/Infra/*.sv", "HDL/Generated/*.sv", "HDL/Tests/Permute_10/*.sv"]),
+  includes = ["./HDL/Types", "./HDL/Logic", "./HDL/Tests/Infra", "./HDL/Generated", "./HDL/Tests/Permute_10"],
+  top_module = "Permute_10_TB",
   hex_files = ["streamInput.hex","config.hex","referenceStream.hex"]
 )

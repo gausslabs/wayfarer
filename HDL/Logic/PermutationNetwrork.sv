@@ -210,6 +210,146 @@ assign output_val[4] = second_layer[4];
 
 endmodule : swap_5
 
+
+
+module swap_10 #(
+    type data_type = PermutationPkg::NibbleType
+) (
+  input data_type input_val[0:9],
+  output data_type output_val[0:9],
+  input wire [24:0] control
+);
+/////////////////////////////////////////////////////////////////
+// internal wires
+/////////////////////////////////////////////////////////////////
+data_type first_layer [0:9], second_layer[0:9];
+
+/////////////////////////////////////////////////////////////////
+// first layer
+/////////////////////////////////////////////////////////////////
+swap #(
+    .data_type(data_type)
+) swap_first_1 (
+  .input_val(input_val[0:1]),
+  .output_val(first_layer[0:1]),
+  .control(control[0])
+);
+
+swap #(
+    .data_type(data_type)
+) swap_first_2 (
+  .input_val(input_val[2:3]),
+  .output_val(first_layer[2:3]),
+  .control(control[1])
+);
+
+swap #(
+    .data_type(data_type)
+) swap_first_3 (
+  .input_val(input_val[4:5]),
+  .output_val(first_layer[4:5]),
+  .control(control[2])
+);
+
+swap #(
+    .data_type(data_type)
+) swap_first_4 (
+  .input_val(input_val[6:7]),
+  .output_val(first_layer[6:7]),
+  .control(control[3])
+);
+
+swap #(
+    .data_type(data_type)
+) swap_first_5 (
+  .input_val(input_val[8:9]),
+  .output_val(first_layer[8:9]),
+  .control(control[4])
+);
+
+
+/////////////////////////////////////////////////////////////////
+// second layer
+/////////////////////////////////////////////////////////////////
+data_type first_half [0:4], second_half [0:4], interim_1[0:4], interim_2[0:4];
+
+genvar i;
+for ( i=0; i<10; ++i) 
+begin
+  if (i % 2 == 0)
+    assign first_half[i / 2] = first_layer[i];
+  else
+    assign second_half[i / 2] = first_layer[i];
+end
+
+
+swap_5 #(
+  .data_type(data_type)
+) top_half (
+  .input_val(first_half),
+  .output_val(interim_1),
+  .control(control[12:5])
+);
+
+swap_5 #(
+  .data_type(data_type)
+) bottom_half (
+  .input_val(second_half),
+  .output_val(interim_2),
+  .control(control[20:13])
+);
+
+
+
+for ( i=0; i<10; ++i) 
+begin
+  if (i % 2 == 0)
+    assign second_layer[i] = interim_1[i / 2];
+  else
+    assign second_layer[i] = interim_2[i / 2];
+end
+
+/////////////////////////////////////////////////////////////////
+// third layer
+/////////////////////////////////////////////////////////////////
+
+swap #(
+    .data_type(data_type)
+) swap_third_1 (
+  .input_val(second_layer[0:1]),
+  .output_val(output_val[0:1]),
+  .control(control[21])
+);
+
+swap #(
+    .data_type(data_type)
+) swap_third_2 (
+  .input_val(second_layer[2:3]),
+  .output_val(output_val[2:3]),
+  .control(control[22])
+);
+
+swap #(
+    .data_type(data_type)
+) swap_third_3 (
+  .input_val(second_layer[4:5]),
+  .output_val(output_val[4:5]),
+  .control(control[23])
+);
+
+swap #(
+    .data_type(data_type)
+) swap_third_4 (
+  .input_val(second_layer[6:7]),
+  .output_val(output_val[6:7]),
+  .control(control[24])
+);
+
+assign output_val[8:9] = second_layer[8:9];
+
+
+endmodule : swap_10
+
 `define PACKED_TO_UNPACKED_CONVERTER(SOURCE, DEST, SIZE, ITERATOR) \
   genvar ITERATOR; \
   for ( ITERATOR = 0; ITERATOR < SIZE; ITERATOR ++) \
@@ -251,6 +391,51 @@ swap_5 #(
 stream_type in_data, out_data;
 `PACKED_TO_UNPACKED_CONVERTER(in_data, input_layer, 5, i)
 `UNPACKED_TO_PACKED_CONVERTER(output_layer, out_data, 5, j)
+
+assign in_data = in.data;
+assign out.data = out_data;
+
+assign out.valid = in.valid;
+assign out.last = in.last;
+assign in.ready = out.ready;
+
+endmodule
+
+
+module PermuteNetwork10 #(
+    type data_type = PermutationPkg::NibbleType,
+    type stream_type = PermutationPkg::FiveWireType
+) (
+  input wire clk,
+  input wire resetn,
+  input wire [24:0] control,
+  AXI4S.Master out,
+  AXI4S.Slave in 
+);
+/////////////////////////////////////////////////////////////////
+// internal wires
+/////////////////////////////////////////////////////////////////
+data_type input_layer [0:9], output_layer [0:9];
+
+
+/////////////////////////////////////////////////////////////////
+// permutation of wires
+/////////////////////////////////////////////////////////////////
+
+swap_10 #(
+  .data_type(data_type)
+) swap (
+  .input_val(input_layer),
+  .output_val(output_layer),
+  .control(control)
+);
+
+/////////////////////////////////////////////////////////////////
+// I/O management
+/////////////////////////////////////////////////////////////////
+stream_type in_data, out_data;
+`PACKED_TO_UNPACKED_CONVERTER(in_data, input_layer, 10, i)
+`UNPACKED_TO_PACKED_CONVERTER(output_layer, out_data, 10, j)
 
 assign in_data = in.data;
 assign out.data = out_data;
