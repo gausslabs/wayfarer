@@ -18,7 +18,9 @@ assign collisionDetected = collision_target | collision_control_1 | collision_co
 
 endmodule
 
-module CollisionCheck (
+module CollisionCheck #(
+  parameter NUMBER_OF_COLUMNS = ShufflePkg::NUMBER_OF_COLUMNS
+) (
   input wire clk,
   input wire resetn,
   input ShufflePkg::Targets targets,
@@ -28,7 +30,7 @@ module CollisionCheck (
 ///////////////////////////////////////////////////////////////////////////
 // internal nets
 ///////////////////////////////////////////////////////////////////////////
-localparam NUMBER_OF_COLUMNS = ShufflePkg::NUMBER_OF_COLUMNS;
+
 logic [NUMBER_OF_COLUMNS - 1:0] collisionDetected;
 
 ///////////////////////////////////////////////////////////////////////////
@@ -62,6 +64,93 @@ RowCollisionCheck row_check (
     
 end
 
+endmodule : CollisionCheck
+
+module StreamCollisionCheck #(
+  parameter NUMBER_OF_COLUMNS = ShufflePkg::NUMBER_OF_COLUMNS
+) (
+  input wire clk,
+  input wire resetn,
+  AXI4S.Slave targets,
+  AXI4S.Slave controls,
+  AXI4S.Master wires,
+  output logic collision
+);
+///////////////////////////////////////////////////////////////////////////
+// internal nets
+///////////////////////////////////////////////////////////////////////////
+ShufflePkg::Targets target_values;
+ShufflePkg::ControlData control_data;
+ShufflePkg::WireData wire_data;
+ShufflePkg::Controls control_values;
+logic collisionDetected;
+
+///////////////////////////////////////////////////////////////////////////
+// output
+///////////////////////////////////////////////////////////////////////////
+always_ff @ (posedge clk)
+begin
+if(resetn)
+begin
+ collision <= collisionDetected & targets.valid & controls.valid & wires.ready;
+end
+else
+begin
+ collision <= 0;
+end
+end
+
+always_ff @ (posedge clk)
+begin
+if(resetn)
+begin
+  if (wires.ready)
+  begin
+    wires.data <= wire_data;  
+    wires.valid <= targets.valid & controls.valid;
+  end
+end
+else
+begin
+  wires.data <= 0;  
+  wires.valid <= 0;
+end
+end
+
+
+///////////////////////////////////////////////////////////////////////
+// Data management
+///////////////////////////////////////////////////////////////////////
+
+`PACKED_TO_UNPACKED_CONVERTER(targets.data, target_values.row, NUMBER_OF_COLUMNS, i)
+
+assign control_data = controls.data;
+
+`PACKED_TO_UNPACKED_CONVERTER(control_data[0], control_values.row[0], NUMBER_OF_COLUMNS, j)
+`PACKED_TO_UNPACKED_CONVERTER(control_data[1], control_values.row[1], NUMBER_OF_COLUMNS, j)
+
+assign wire_data[0] = targets.data;
+assign wire_data[1] = control_data[0];
+assign wire_data[2] = control_data[1];
+
+///////////////////////////////////////////////////////////////////////////
+// processing
+///////////////////////////////////////////////////////////////////////////
+
+assign targets.ready = wires.ready;
+assign controls.ready = wires.ready;
+
+CollisionCheck #(
+  .NUMBER_OF_COLUMNS(NUMBER_OF_COLUMNS)
+) collision_check (
+  .clk(clk),
+  .resetn(resetn),
+  .targets(targets.data),
+  .controls(controls.data),
+  .collision(collisionDetected)
+);
+
 endmodule
+
 
 `endif

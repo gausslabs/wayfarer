@@ -93,7 +93,7 @@ endpackage
 
 package AgentPkg;
 localparam LFSRPkg::LFSRType LFSR_TYPE  = LFSRPkg::LFSR_16;
-localparam NUMBER_OF_STAGES = 6;
+localparam NUMBER_OF_STAGES = 5;
 localparam PermutationPkg::SafePermutaions PERMUTATION_TYPE = PermutationPkg::wire_type(NUMBER_OF_STAGES);
 localparam STAGES_ID_WIDTH = $clog2(NUMBER_OF_STAGES);
 localparam DATA_WIDTH = 8;

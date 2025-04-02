@@ -36,6 +36,35 @@ end
 
 endmodule
 
+module LFSR32 (
+  input wire clk,
+  input wire resetn,
+  input wire next,
+  input wire [31:0] seed,
+  output logic [31:0] out
+);
+
+///////////////////////////////////////////////////////////////////////
+// Simple LFSR of the polynomial x^32 + x^30 + x^26 + x^25 + 1
+///////////////////////////////////////////////////////////////////////
+logic [31:0] state;
+
+always_ff @ (posedge clk)
+begin
+if(resetn)
+begin
+  if(next)
+    state <= {state[30:0],(state[31] ^ state[29] ^ state[25] ^ state[24])};
+end
+else
+begin
+  state <= seed;
+end
+end
+
+assign out = state;
+
+endmodule : LFSR32
 
 module LFSR16 (
   input wire clk,
@@ -63,6 +92,38 @@ end
 
 
 endmodule
+
+
+module LFSR10 (
+  input wire clk,
+  input wire resetn,
+  input wire next,
+  input wire [9:0] seed,
+  output logic [9:0] out
+);
+
+///////////////////////////////////////////////////////////////////////
+// Simple LFSR of the polynomial x^10 + x^9 + x^7 + x^6 + 1
+///////////////////////////////////////////////////////////////////////
+logic [9:0] state;
+
+always_ff @ (posedge clk)
+begin
+if(resetn)
+begin
+  if(next)
+    state <= {state[8:0],(state[9] ^ state[8] ^ state[6] ^ state[5])};
+end
+else
+begin
+  state <= seed;
+end
+end
+
+assign out = state;
+
+endmodule
+
 
 module LFSR8 (
   input wire clk,
