@@ -184,7 +184,7 @@ module ShuffleWires #(
     parameter CONTROL_SIZE = 10,
     parameter TARGET_SIZE = 5,
     type target_type = ShufflePkg::TargetStream,
-    type control_type = ShufflePkg::ControlStream.
+    type control_type = ShufflePkg::ControlStream,
     type stream_type = ShufflePkg::WireData
 ) (
   input wire clk,
@@ -413,7 +413,7 @@ ShuffleWires #(
   .CONTROL_SIZE(10),
   .TARGET_SIZE(5),
   .target_type(ShufflePkg::TargetStream),
-  .control_type(ShufflePkg::ControlStream).
+  .control_type(ShufflePkg::ControlStream),
   .stream_type(data_type)
 ) shuffle_wires (
   .clk(clk),

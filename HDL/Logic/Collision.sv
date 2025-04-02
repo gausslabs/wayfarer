@@ -127,7 +127,7 @@ end
 assign control_data = controls.data;
 
 `PACKED_TO_UNPACKED_CONVERTER(control_data[0], control_values.row[0], NUMBER_OF_COLUMNS, j)
-`PACKED_TO_UNPACKED_CONVERTER(control_data[1], control_values.row[1], NUMBER_OF_COLUMNS, j)
+`PACKED_TO_UNPACKED_CONVERTER(control_data[1], control_values.row[1], NUMBER_OF_COLUMNS, k)
 
 assign wire_data[0] = targets.data;
 assign wire_data[1] = control_data[0];
