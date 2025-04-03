@@ -1,6 +1,15 @@
 `ifndef COLLISION_CHECK
  `define COLLISION_CHECK
 
+`ifndef PACKED_TO_UNPACKED_CONVERTER
+`define PACKED_TO_UNPACKED_CONVERTER(SOURCE, DEST, SIZE, ITERATOR) \
+  genvar ITERATOR; \
+  for ( ITERATOR = 0; ITERATOR < SIZE; ITERATOR ++) \
+  assign DEST[ITERATOR] = SOURCE[ITERATOR]; 
+
+`define UNPACKED_TO_PACKED_CONVERTER(SOURCE, DEST, SIZE, ITERATOR) `PACKED_TO_UNPACKED_CONVERTER(SOURCE, DEST, SIZE, ITERATOR)
+`endif
+
 module RowCollisionCheck (
   input ShufflePkg::ActiveWire target,
   input ShufflePkg::ActiveWire control_1,

@@ -94,7 +94,7 @@ begin
 end
 
 assign validPermutation = (current_state == IDLE);
-
+logic sample_pulse;
 PulseGenerator pulse_generator (
   .clk(clk),
   .resetn(resetn & (current_state == SAMPLE)),
@@ -185,7 +185,7 @@ begin
 end
 else
 begin
-  current_state <= SAMPLE;
+  current_state <= IDLE;
 end
 end
 
@@ -193,7 +193,7 @@ always_comb
 begin
   case (current_state)
     SAMPLE:
-        next_state = (c_select.valid & b_select.valid & a_select.valid) ? COLLISION_CHECK : SAMPLE;
+        next_state = (c_select.valid & b_select.valid & a_select.valid) | (activeWireConfig[0].present & activeWireConfig[1].present & activeWireConfig[2].present) ? COLLISION_CHECK : SAMPLE;
     COLLISION_CHECK:
         next_state = collisionDetected ? SAMPLE : DONE;
     DONE:
@@ -207,10 +207,11 @@ begin
 end
 
 assign validWires = (current_state == DONE);
-
-assign c_select.ready = (current_state == COLLISION_CHECK) & (~activeWireConfig[0].present);
-assign a_select.ready = (current_state == COLLISION_CHECK) & (~activeWireConfig[1].present);
-assign b_select.ready = (current_state == COLLISION_CHECK) & (~activeWireConfig[2].present);
+logic in_collsion;
+assign in_collsion = resetn ? (current_state == COLLISION_CHECK) : 0;
+assign c_select.ready = in_collsion & (~activeWireConfig[0].present);
+assign a_select.ready = in_collsion & (~activeWireConfig[1].present);
+assign b_select.ready = in_collsion & (~activeWireConfig[2].present);
 
 ///////////////////////////////////////////////////////////////////
 // Collision check 
@@ -259,7 +260,7 @@ end
 AXISFIFO #(
   .DATA_WIDTH(DATA_WIDTH),
   .MODE(FIFOPkg::DATA_ONLY), 
-  .STORE_SIZE(3)
+  .STORE_SIZE(2)
 ) a_select_buffer (
   .clk(clk),
   .resetn(resetn),
@@ -270,7 +271,7 @@ AXISFIFO #(
 AXISFIFO #(
   .DATA_WIDTH(DATA_WIDTH),
   .MODE(FIFOPkg::DATA_ONLY), 
-  .STORE_SIZE(3)
+  .STORE_SIZE(2)
 ) b_select_buffer (
   .clk(clk),
   .resetn(resetn),
@@ -281,7 +282,7 @@ AXISFIFO #(
 AXISFIFO #(
   .DATA_WIDTH(DATA_WIDTH),
   .MODE(FIFOPkg::DATA_ONLY), 
-  .STORE_SIZE(3)
+  .STORE_SIZE(2)
 ) c_select_buffer (
   .clk(clk),
   .resetn(resetn),

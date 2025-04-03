@@ -55,6 +55,14 @@ vivado_sim_proj(
 )
 
 vivado_sim_proj(
+  name = "SafeWire_TB",
+  srcs = glob(["HDL/Types/*.sv", "HDL/Logic/*.sv", "HDL/Tests/Infra/*.sv", "HDL/Generated/*.sv", "HDL/Tests/SimpleTests/*.sv"]),
+  includes = ["./HDL/Types", "./HDL/Logic", "./HDL/Tests/Infra", "./HDL/Generated", "./HDL/Tests/SimpleTests"],
+  top_module = "SafeWire_TB",
+  hex_files = []
+)
+
+vivado_sim_proj(
   name = "LFSRMod11_TB",
   srcs = glob(["HDL/Types/*.sv", "HDL/Logic/*.sv", "HDL/Tests/Infra/*.sv", "HDL/Generated/*.sv", "HDL/Tests/LFSRMod11/*.sv"]),
   includes = ["./HDL/Types", "./HDL/Logic", "./HDL/Tests/Infra", "./HDL/Generated", "./HDL/Tests/LFSRMod11"],
