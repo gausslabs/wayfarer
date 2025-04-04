@@ -94,15 +94,15 @@ tc.wires[2].present = 1;
 tc.wires[2].position = 3;
 #10;
 tc.sample = 0;
-
+for (int i=0; i<11; ++i) begin
 #150;
 tc.sample = 1;
 tc.wires[0].present = 1;
-tc.wires[0].position = 0;
+tc.wires[0].position = $random() %11;
 tc.wires[1].present = 1;
-tc.wires[1].position = 2;
+tc.wires[1].position = $random() %11;
 tc.wires[2].present = 1;
-tc.wires[2].position = 3;
+tc.wires[2].position = $random() %11;
 #10;
 tc.sample = 0;
 
@@ -120,9 +120,9 @@ tc.sample = 0;
 #150;
 tc.sample = 1;
 tc.wires[0].present = 1;
-tc.wires[0].position = 0;
+tc.wires[0].position = $random() %11;
 tc.wires[1].present = 1;
-tc.wires[1].position = 2;
+tc.wires[1].position = $random() %11;
 tc.wires[2].present = 0;
 tc.wires[2].position = 3;
 #10;
@@ -131,7 +131,7 @@ tc.sample = 0;
 #150;
 tc.sample = 1;
 tc.wires[0].present = 1;
-tc.wires[0].position = 2;
+tc.wires[0].position = $random() % 11;
 tc.wires[1].present = 0;
 tc.wires[1].position = 2;
 tc.wires[2].present = 0;
@@ -150,6 +150,8 @@ tc.wires[2].position = 3;
 #10;
 tc.sample = 0;
 
+#40;
+end
 #40;
 tc.sample = 1;
 //#10;
