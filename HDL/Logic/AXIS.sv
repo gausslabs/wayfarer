@@ -49,6 +49,32 @@ assign streamTwo.last  = in.last;
 
 endmodule
 
+module Duplicator (
+  AXI4S.Master streamOne,
+  AXI4S.Master streamTwo,
+  AXI4S.Slave in
+);
+/////////////////////////////////////////////////////////////////
+// Input control
+/////////////////////////////////////////////////////////////////
+assign in.ready = streamOne.ready & streamTwo.ready;
+/////////////////////////////////////////////////////////////////
+// Stream One control
+/////////////////////////////////////////////////////////////////
+assign streamOne.valid = in.valid;
+assign streamOne.data = in.data;
+assign streamOne.keep  = in.keep;
+assign streamOne.last  = in.last;
+/////////////////////////////////////////////////////////////////
+// Stream Two control
+/////////////////////////////////////////////////////////////////
+assign streamTwo.valid = in.valid;
+assign streamTwo.data = in.data;
+assign streamTwo.keep  = in.keep;
+assign streamTwo.last  = in.last;
+
+endmodule
+
 module StreamConnector (
   AXI4S.Master out,
   AXI4S.Slave in

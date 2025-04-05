@@ -45,6 +45,9 @@ logic [NUMBER_OF_STAGES - 1:0] counters_done;
 logic [NUMBER_OF_STAGES - 1:0] comparator_output;
 logic [31:0] count;
 
+assign done = &counters_done;
+assign equal = &comparator_output;
+
 AXI4S #(.DATA_WIDTH(TOTAL_WIDTH)) source [0:NUMBER_OF_STAGES -1]();
 AXI4S #(.DATA_WIDTH(TOTAL_WIDTH)) gate_input [0:NUMBER_OF_GATES] [0:NUMBER_OF_STAGES -1]();
 AXI4S #(.DATA_WIDTH(TOTAL_WIDTH)) passthrough [0:NUMBER_OF_GATES] [0:NUMBER_OF_STAGES -1]();
@@ -116,7 +119,7 @@ begin
       .out(source[i])
     );
 
-    Tee tee_junction (
+    Duplicator tee_junction (
         .streamOne(gate_input[0][i]),
         .streamTwo(passthrough[0][i]),
         .in(source[i])
