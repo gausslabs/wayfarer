@@ -156,7 +156,9 @@ end
 genvar k;
 for ( k=0; k<NUMBER_OF_STAGES; k++) 
 begin
-AXISComparator comparator (
+AXISComparatorNoReadyHandling #(
+  .NAME($sformatf("Input: %0d", k))
+) comparator (
   .clk(clk),
   .resetn(resetn),
   .in1(gate_input[NUMBER_OF_GATES][k]),
@@ -172,7 +174,7 @@ SimpleCounter #(
 ) sample_pass_count (
   .clk(clk),
   .resetn(resetn & reset_func & (&config_loaded)),
-  .enable(&comparator_output),
+  .enable((&comparator_output) & done ),
   .count(count)
 );
 
