@@ -1,7 +1,9 @@
 `ifndef AXIL_GATE
  `define AXIL_GATE
 
-module AXILGate (
+module AXILGate #(
+  parameter ENABLE_ILA = 0
+)(
   input wire clk,
   input wire resetn,
  // Axi ports
@@ -43,7 +45,7 @@ logic validConfig, reset_func, done, equal;
 logic [0:NUMBER_OF_GATES - 1] config_loaded;
 logic [NUMBER_OF_STAGES - 1:0] counters_done;
 logic [NUMBER_OF_STAGES - 1:0] comparator_output;
-logic [NUMBER_OF_STAGES - 1:0] gate_inp_valids;
+logic [NUMBER_OF_STAGES - 1:0] gate_inp_valids, source_valids;
 logic [31:0] count;
 
 assign done = &counters_done;
@@ -111,6 +113,7 @@ AXILConfigStore #(
 genvar i;
 for ( i=0; i<NUMBER_OF_STAGES; i++) 
 begin
+  assign source_valids[i] = source[i].valid;
     AXISCounterWithMask #(
       .TOTAL_WIDTH(TOTAL_WIDTH),
       .MASK(i),
@@ -168,7 +171,7 @@ AXISComparatorNoReadyHandling #(
   .NAME($sformatf("Input: %0d", k))
 ) comparator (
   .clk(clk),
-  .resetn(resetn & reset_func),
+  .resetn(resetn & reset_func & (&config_loaded)),
   .in1(gate_input[NUMBER_OF_GATES][k]),
   .in2(passthrough[NUMBER_OF_GATES][k]),
   .lastReached(),
@@ -185,6 +188,61 @@ SimpleCounter #(
   .enable((&comparator_output) & (&gate_inp_valids) ),
   .count(count)
 );
+
+
+/////////////////////////////////////////////////////////////////////////
+// Degub ILA
+/////////////////////////////////////////////////////////////////////////
+if (ENABLE_ILA == 1)
+begin
+   ila_1 CL_GATE_ILA_0 (
+                   .clk    (clk),
+                   .probe0 (done),
+                   .probe1 (equal),
+                   .probe2 (config_loaded),
+                   .probe3 (0),
+                   .probe4 (0),
+                   .probe5 (0),
+                   .probe6 (0),
+                   .probe7 (0),
+                   .probe8 (1'b0),
+                   .probe9 (1'b0),
+                   .probe10 (0),
+                   .probe11 (1'b0),
+                   .probe12 (0),
+                   .probe13 (2'b0),
+                   .probe14 (0),
+                   .probe15 (0),
+                   .probe16 (0),
+                   .probe17 (3'b0),
+                   .probe18 (3'b0),
+                   .probe19 (0),
+                   .probe20 (0),
+                   .probe21 (0),
+                   .probe22 (0),
+                   .probe23 (3'b0),
+                   .probe24 (0),
+                   .probe25 (0),
+                   .probe26 (0),
+                   .probe27 (0),
+                   .probe28 (3'b0),
+                   .probe29 (0),
+                   .probe30 (gate_input[NUMBER_OF_GATES][0].valid),
+                   .probe31 (gate_input[NUMBER_OF_GATES][0].data[3:0]),
+                   .probe32 (gate_input[NUMBER_OF_GATES][0].data[7:4]),
+                   .probe33 (passthrough[NUMBER_OF_GATES][0].data[3:0]),
+                   .probe34 (passthrough[NUMBER_OF_GATES][0].data[7:4]),
+                   .probe35 (passthrough[NUMBER_OF_GATES][0].valid),
+                   .probe36 (source_valids[3:0]),
+                   .probe37 (source_valids[7:4]),
+                   .probe38 (0),
+                   .probe39 (0),
+                   .probe40 (1'b0),
+                   .probe41 (1'b0),
+                   .probe42 (1'b0),
+                   .probe43 (1'b0)
+                   );
+end
 
 endmodule
 
