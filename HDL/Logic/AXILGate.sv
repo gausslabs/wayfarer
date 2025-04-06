@@ -59,6 +59,7 @@ AXILConfigStore #(
     .store_type(AXILitePkg::GateConfigStore),
     .config_type(AgentPkg::GateConfig),
     .NUMBER_OF_GATES(NUMBER_OF_GATES),
+    .NUMBER_OF_STAGES(NUMBER_OF_STAGES),
     // Addresses are always interms of bytes
     .CONFIG_SIZE(AXILitePkg::NUMBER_OF_WORDS),
     .START_OFFSET(32'd0)

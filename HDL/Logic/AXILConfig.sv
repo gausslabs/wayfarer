@@ -5,6 +5,7 @@ module AXILConfigStore #(
     type store_type = AXILitePkg::GateConfigStore,
     type config_type = AgentPkg::GateConfig,
     parameter NUMBER_OF_GATES = AXILitePkg::NUMBER_OF_GATES,
+    parameter NUMBER_OF_STAGES = 8, 
     // Addresses are always interms of bytes
     parameter CONFIG_SIZE = AXILitePkg::NUMBER_OF_WORDS,
     parameter START_OFFSET = 32'd0
@@ -19,6 +20,7 @@ module AXILConfigStore #(
   output config_type configs [0:NUMBER_OF_GATES - 1],
   input wire done,
   input wire equal,
+  input wire [NUMBER_OF_STAGES - 1:0] comparator_outputs,
   input wire [31:0] count,
 
 // Axi ports
@@ -218,7 +220,7 @@ begin
       if (read_addr < CONFIG_SIZE)
          axil_rdata <= data.data[read_addr];
       else if (read_addr == CONFIG_SIZE) begin
-         axil_rdata <= {28*{1'b0},{done,equal,reset_func,validConfig}};
+         axil_rdata <= {20*{1'b0},{comparator_outputs,done,equal,reset_func,validConfig}};
       end
       else begin
          axil_rdata <= count;
