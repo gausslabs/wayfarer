@@ -74,6 +74,7 @@ AXILConfigStore #(
   .configs(configs),
   .done(done),
   .equal(equal),
+  .comparator_outputs(comparator_output),
   .count(count),
 
 // Axi ports

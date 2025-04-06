@@ -15,9 +15,9 @@ module AXISCounter #(
 // Internal nets
 ////////////////////////////////////////////////////////////////
 logic [DATA_WIDTH:0] next_count;
-logic [DATA_WIDTH - 1:0] count;
+logic [DATA_WIDTH:0] count;
 
-assign done = next_count > LIMIT;
+assign done = count > LIMIT;
 
 assign next_count = count + 1;
 
@@ -25,8 +25,8 @@ always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
-    if (out.ready & (next_count <= LIMIT))
-        count <= next_count[DATA_WIDTH - 1:0];
+    if (out.ready & (count <= LIMIT))
+        count <= next_count;
 end
 else
 begin
@@ -39,7 +39,7 @@ end
 ////////////////////////////////////////////////////////////////
 assign out.valid = resetn & (~done);
 assign out.last = (count == LIMIT);
-assign out.data = count;
+assign out.data = count[DATA_WIDTH - 1:0];
 
 
 endmodule
