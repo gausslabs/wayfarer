@@ -61,8 +61,9 @@ end
 ///////////////////////////////////////////////////////////////////////////
 // writing operands
 ///////////////////////////////////////////////////////////////////////////
-logic [$clog2(CONFIG_SIZE + 2) -1:0] write_addr;
-logic mask_enable;
+localparam TOTAL_REGISTER = CONFIG_SIZE + 2;
+logic [$clog2(TOTAL_REGISTER) -1:0] write_addr;
+logic mask_disable;
 assign axil_awready = 1;
 
 always_ff @ (posedge clk)
@@ -71,13 +72,13 @@ if(resetn)
 begin
     if(axil_awvalid)
     begin
-        mask_enable <= axil_awaddr > START_OFFSET;
-        write_addr <= axil_awaddr[2+:$clog2(CONFIG_SIZE + 2)];
+        mask_disable <= 0;//~(axil_awaddr >= START_OFFSET & (axil_awaddr <= (START_OFFSET + ((TOTAL_REGISTER) <<2))));
+        write_addr <= axil_awaddr[2+:$clog2(TOTAL_REGISTER)];
     end
 end
 else
 begin
-  mask_enable <= 0;
+  mask_disable <= 0;
   write_addr <= 0;
 end
 end
@@ -90,7 +91,7 @@ always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
-  if (axil_wvalid & (~mask_enable))
+  if (axil_wvalid & (~mask_disable))
   begin
     if (write_addr < CONFIG_SIZE)
         begin
@@ -176,8 +177,8 @@ end
 ///////////////////////////////////////////////////////////////////////////
 // reading operands and result
 ///////////////////////////////////////////////////////////////////////////
-logic [$clog2(CONFIG_SIZE + 2) - 1:0] read_addr;
-logic read_mask_enable, read_enable;
+logic [$clog2(TOTAL_REGISTER) - 1:0] read_addr;
+logic read_mask_disable, read_enable;
 assign axil_arready = 1;
 
 always_ff @ (posedge clk)
@@ -187,14 +188,14 @@ begin
   read_enable <= axil_arvalid;
     if(axil_arvalid)
     begin
-        read_mask_enable <= axil_awaddr > START_OFFSET & (axil_awaddr < (START_OFFSET + ((CONFIG_SIZE + 2) <<2)));
-        read_addr <= axil_araddr[2+:$clog2(CONFIG_SIZE + 2)];
+        read_mask_disable <= 0;//~(axil_awaddr > START_OFFSET & (axil_awaddr < (START_OFFSET + ((TOTAL_REGISTER) <<2))));
+        read_addr <= axil_araddr[2+:$clog2(TOTAL_REGISTER)];
     end
 end
 else
 begin
   read_enable <= 0;
-  read_mask_enable <= 0;
+  read_mask_disable <= 0;
   read_addr <= 0;
 end
 end
@@ -209,8 +210,8 @@ if(resetn)
 begin
   if (read_enable)
   begin
-     axil_rvalid <= ~read_mask_enable;
-     if (read_mask_enable)
+     axil_rvalid <= ~read_mask_disable;
+     if (read_mask_disable)
       axil_rdata <= 0;
      else
      begin
