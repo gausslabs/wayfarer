@@ -19,9 +19,9 @@ fn string_wires(wires: &[WireEntries], start_value: u128) -> String {
     format!("{:021x}",value)
 }
 
-fn config_from_int(index: usize) -> Vec<bool> {
+fn config_from_int<const NUMBER_ELEMENTS: usize>(index: usize) -> Vec<bool> {
     let mut control = vec![];
-    for i in 0..32 {
+    for i in 0..NUMBER_ELEMENTS {
         control.push(((index >> i) & 1) == 1);
     }
 
@@ -107,7 +107,7 @@ impl WireMatrix {
     pub fn shuffle(&mut self) {
         loop {
         let conf = self.lfsr.next() as usize;
-        let config = config_from_int(conf);
+        let config = config_from_int::<32>(conf);
 
         self.shuffle_data(config);
         
@@ -120,6 +120,7 @@ impl WireMatrix {
 
     pub fn shuffle_data_new(&mut self, config_targets: Vec<bool>, config_controls: Vec<bool>) {
 
+        // println!("The un-flattened controls are \n {:?}", self.controls);
         let mut flattened_controls = flatten(self.controls);
         
         // println!("The flattened controls are \n {:?}", flattened_controls);
@@ -127,8 +128,9 @@ impl WireMatrix {
         // println!("The riffled controls are \n {:?}", flattened_controls);
         flattened_controls.rotate_left(config_controls[25] as usize);
         // println!("The rotated controls are \n {:?}", flattened_controls);
-
+        
         flattened_controls = walksman_permutation_10(&flattened_controls, &config_controls[0..25]);
+        // println!("The permuted controls are \n {:?}", flattened_controls);
 
         self.controls = reshape(flattened_controls);
         
@@ -182,7 +184,7 @@ impl WireMatrix {
 
 #[cfg(test)]
 mod test {
-    use std::{collections::HashSet, usize};
+    use std::{collections::{HashMap, HashSet}, fmt::Pointer, usize};
     use super::*;
 
     #[test]
@@ -219,10 +221,12 @@ mod test {
         const SET_SIZE: usize = 435456000;    
 
         let mut wire_data: [[WireEntries;5];3] = [[WireEntries::default();5];3];
+        let mut pointer = 0;
         for i in 0..3 {
 
             for j in 0..5 {
-                wire_data[i][j].position = ((i + 1) * (j + 1)) as u8;
+                wire_data[i][j].position = pointer;
+                pointer += 1;
             }
             
         }
@@ -233,14 +237,13 @@ mod test {
 
         let mut wr = WireMatrix::new(wire_data, 123123);
 
-        let mut i: u64 = u32::MAX as u64 * 4;
+        let max: u64 = 1 << 30;
 
-        while i > 0 {
+        for  _ in 0..max {
             let conf = wr.lfsr.next() as usize;
-            let config = config_from_int(conf);
+            let config = config_from_int::<32>(conf);
             wr.shuffle_data(config);
             set.insert([wr.targets.clone(), wr.controls[0].clone(), wr.controls[1].clone()]);
-            i = i -1;
         }
 
         println!("The set size is {:?}", set.len());
@@ -255,10 +258,12 @@ mod test {
         const SET_SIZE: usize = 435456000;    
 
         let mut wire_data: [[WireEntries;5];3] = [[WireEntries::default();5];3];
+        let mut pointer = 0;
         for i in 0..3 {
 
             for j in 0..5 {
-                wire_data[i][j].position = ((i + 1) * (j + 1)) as u8;
+                wire_data[i][j].position = pointer;
+                pointer +=1;
             }
             
         }
@@ -267,22 +272,79 @@ mod test {
 
         assert!(set.insert(wire_data.clone()));
 
-        let mut wr = WireMatrix::new(wire_data, 123123);
+        let mut wr = WireMatrix::new(wire_data, 345668);
         let mut second_lfsr = LFSR::new(12332);
 
-        let mut i: u64 = u32::MAX as u64 * 4;
+        let max: u64 = 1 << 29;
 
-        while i > 0 {
+        for _i in 0..max {
             let conf = wr.lfsr.next() as usize;
-            let config_controls = config_from_int(conf);
-            let target_configs = config_from_int(second_lfsr.next() as usize);
+            let config_controls = config_from_int::<27>(conf);
+            let target_configs = config_from_int::<10>(second_lfsr.next() as usize);
             wr.shuffle_data_new(target_configs, config_controls);
             set.insert([wr.targets.clone(), wr.controls[0].clone(), wr.controls[1].clone()]);
-            i = i -1;
         }
 
         println!("The set size is {:?}", set.len());
 
         assert!(set.len() == SET_SIZE, "The set size should be 0")
     }
+
+    #[test]
+    fn test_shuffle_occurance( ) {
+        let mut occurance: HashMap<WireEntries, [usize; 10]> = HashMap::new();
+
+        let mut wire_data: [[WireEntries;5];3] = [[WireEntries::default();5];3];
+        let mut pointer = 0;
+        for i in 0..3 {
+
+            for j in 0..5 {
+                wire_data[i][j].position = pointer;
+                occurance.insert(wire_data[i][j], [0;10]);
+                pointer +=1;
+            }
+            
+        }
+        
+        println!("The wires base are {:?}", wire_data);
+        println!("The wires 0 are {:?}", wire_data[0]);
+        println!("The wires 1 are {:?}", wire_data[1]);
+        println!("The wires 2 are {:?}", wire_data[2]);
+
+        let mut wr = WireMatrix::new(wire_data, 345668);
+        let mut second_lfsr = LFSR::new(12332);
+        println!("The targets  {:?}", wr.targets);
+        println!("The controls  {:?}", wr.controls);
+        let max: u64 = 1 << 29;
+
+        for i in 0..max {
+            let conf = wr.lfsr.next() as usize;
+            let config_controls = config_from_int::<27>(conf);
+            let target_configs = config_from_int::<10>(second_lfsr.next() as usize);
+            wr.shuffle_data_new(target_configs, config_controls);
+            // populating the map
+            for (index, w) in wr.targets.iter().enumerate() {
+                let values = occurance.get_mut(w).unwrap();
+                values[index] += 1;
+            }
+
+            for (position,wires) in wr.controls.iter().enumerate() {
+                for (index, w) in wires.iter().enumerate() {
+                    if w.position == 3 || w.position == 2 {
+                        println!("The should nout get this in controls are {:?}", w);
+                        println!("{}:The targets {:?}", i, wr.targets);
+                        println!("{}:The controls {:?}",i, wr.controls);
+                        return;
+                    }
+                    let values = occurance.get_mut(w).unwrap();
+                    values[index + (position * 5)] += 1;
+                }
+            }
+        }
+
+        println!("The occurances are {:?}", occurance);
+        println!("The targets  {:?}", wr.targets);
+        println!("The controls  {:?}", wr.controls);
+    }
+    
 }
