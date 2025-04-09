@@ -2,7 +2,7 @@ load(":rtl.bzl", "lint_rtl", "vivado_sim_proj")
 
 lint_rtl(
   name = "lint_rtl",
-  top = "AXILGate",
+  top = "Shuffle",
   include_dirs = ["./HDL/Types", "./HDL/Logic", "./HDL/Tests/Infra", "./HDL/Generated"],
 )
 

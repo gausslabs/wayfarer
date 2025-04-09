@@ -1,5 +1,5 @@
 use rand::Rng;
-use std::{env, usize};
+use std::env;
 use utilities::{
     write_file
 };

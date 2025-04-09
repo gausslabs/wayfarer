@@ -65,9 +65,9 @@ for (i=0; i<NUMBER_OF_COLUMNS; i++)
 begin
 
 RowCollisionCheck row_check (
-  .target(targets[i]),
-  .control_1(controls[0][i]),
-  .control_2(controls[1][i]),
+  .target(targets.row[i]),
+  .control_1(controls.row[0][i]),
+  .control_2(controls.row[1][i]),
   .collisionDetected(collisionDetected[i])
 );
     
@@ -154,8 +154,8 @@ CollisionCheck #(
 ) collision_check (
   .clk(clk),
   .resetn(resetn),
-  .targets(targets.data),
-  .controls(controls.data),
+  .targets(target_values),
+  .controls(control_values),
   .collision(collisionDetected)
 );
 

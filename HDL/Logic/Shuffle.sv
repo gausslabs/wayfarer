@@ -17,8 +17,7 @@ module ShuffleTargets #(
 ///////////////////////////////////////////////////////////////////////
 // Internal Data
 ///////////////////////////////////////////////////////////////////////
-data_type input_layer [0:TARGET_SIZE - 1];
-data_type riffle_layer [0:TARGET_SIZE - 1], rotate_layer [0:TARGET_SIZE - 1];
+stream_type riffle_layer, rotate_layer;
 
 AXI4S #(.DATA_WIDTH($bits(stream_type))) network_stream(), network_stream_delayed();
 
@@ -26,9 +25,7 @@ AXI4S #(.DATA_WIDTH($bits(stream_type))) network_stream(), network_stream_delaye
 // Data management
 ///////////////////////////////////////////////////////////////////////
 
-`PACKED_TO_UNPACKED_CONVERTER(in.data, input_layer, TARGET_SIZE, i)
-
-`UNPACKED_TO_PACKED_CONVERTER(rotate_layer, network_stream.data, TARGET_SIZE, j)
+// `UNPACKED_TO_PACKED_CONVERTER(rotate_layer, network_stream.data, TARGET_SIZE, j)
 
 ///////////////////////////////////////////////////////////////////////
 // Protocol management
@@ -36,16 +33,17 @@ AXI4S #(.DATA_WIDTH($bits(stream_type))) network_stream(), network_stream_delaye
 
 assign network_stream.valid = in.valid;
 assign in.ready = network_stream.ready;
+assign network_stream.data = rotate_layer;
 
 
 ///////////////////////////////////////////////////////////////////////
 // Riffle & Rotate Data
 ///////////////////////////////////////////////////////////////////////
 riffle #(
-  .data_type(data_type),
+  .data_type(stream_type),
   .SIZE(TARGET_SIZE)
 ) riffle_data (
-  .input_val(input_layer),
+  .input_val(in.data),
   .output_val(riffle_layer),
   .control(control[9])
 );
@@ -98,8 +96,7 @@ module ShuffleControls #(
 ///////////////////////////////////////////////////////////////////////
 // Internal Data
 ///////////////////////////////////////////////////////////////////////
-data_type input_layer [0:CONTROL_SIZE - 1];
-data_type riffle_layer [0:CONTROL_SIZE - 1], rotate_layer [0:CONTROL_SIZE - 1];
+stream_type riffle_layer, rotate_layer;
 
 AXI4S #(.DATA_WIDTH($bits(stream_type))) network_stream(), network_stream_delayed();
 
@@ -107,9 +104,7 @@ AXI4S #(.DATA_WIDTH($bits(stream_type))) network_stream(), network_stream_delaye
 // Data management
 ///////////////////////////////////////////////////////////////////////
 
-`PACKED_TO_UNPACKED_CONVERTER(in.data, input_layer, CONTROL_SIZE, i)
-
-`UNPACKED_TO_PACKED_CONVERTER(rotate_layer, network_stream.data, CONTROL_SIZE, j)
+// `UNPACKED_TO_PACKED_CONVERTER(rotate_layer, network_stream.data, CONTROL_SIZE, j)
 
 ///////////////////////////////////////////////////////////////////////
 // Protocol management
@@ -117,7 +112,7 @@ AXI4S #(.DATA_WIDTH($bits(stream_type))) network_stream(), network_stream_delaye
 
 assign network_stream.valid = in.valid;
 assign in.ready = network_stream.ready;
-
+assign network_stream.data = rotate_layer;
 
 ///////////////////////////////////////////////////////////////////////
 // Riffle & Rotate Data
@@ -126,7 +121,7 @@ riffle #(
   .data_type(data_type),
   .SIZE(CONTROL_SIZE)
 ) riffle_data (
-  .input_val(input_layer),
+  .input_val(in.data),
   .output_val(riffle_layer),
   .control(control[26])
 );
@@ -209,8 +204,7 @@ AXI4S #(.DATA_WIDTH($bits(control_type))) control_in_stream(), control_out_strea
 
 assign in_data = in.data;
 assign target_in_stream.data = in_data[0];
-assign control_data[0] = in_data[1];
-assign control_data[1] = in_data[2];
+assign control_data[0] = in_data[1:2];
 assign control_in_stream.data = control_data;
 
 ///////////////////////////////////////////////////////////////////////
@@ -344,6 +338,8 @@ begin
 end
 end
 
+assign wires_valid = (current_state == IDLE);
+
 assign wires.ready = (current_state == EXTERNAL_LOAD);
 
 ///////////////////////////////////////////////////////////////////////////
@@ -389,9 +385,9 @@ PulseGenerator pulse_generator (
 
 assign wire_values.valid = pulse;
 assign wire_values.data = wire_data;
-assign shuffled = collision_stream.valid;
+assign shuffled = collision_stream.valid & (~collision);
 assign collision_stream.ready = (current_state == SHUFFLE);
-
+assign shuffled_wires = collision_stream.data;
 ///////////////////////////////////////////////////////////////////////////
 // LFSR
 ///////////////////////////////////////////////////////////////////////////
@@ -415,7 +411,7 @@ ShuffleWires #(
   .target_type(ShufflePkg::TargetStream),
   .control_type(ShufflePkg::ControlStream),
   .stream_type(data_type)
-) shuffle_wires (
+) shuffle_wire_matrix (
   .clk(clk),
   .resetn(resetn &(current_state == SHUFFLE)),
   .control({lfsr_value[3:0],lfsr_value}),
@@ -423,12 +419,6 @@ ShuffleWires #(
   .out(collision_stream),
  .in(wire_values)
 );
-
-///////////////////////////////////////////////////////////////////////////
-// Output manageement
-///////////////////////////////////////////////////////////////////////////
-assign wires_out = collision_stream.data;
-assign wires_valid = collision_stream.valid & (~collision);
 
 
 endmodule : Shuffle

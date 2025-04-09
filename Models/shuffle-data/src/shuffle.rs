@@ -1,8 +1,8 @@
 use std::u128;
 
 use local_mixing::replacement::permutations::{riffle_shuffle, walksman_permutation_5};
-use local_mixing::replacement::{lfsr::WireEntries};
-use local_mixing::replacement::{permutations::walksman_permutation_10};
+use local_mixing::replacement::lfsr::WireEntries;
+use local_mixing::replacement::permutations::walksman_permutation_10;
 
 
 fn int_wire(w: WireEntries) -> usize {
@@ -77,7 +77,7 @@ impl LFSR {
 impl LFSR {
 
     fn next(&mut self) -> u32 {
-        let new  = get_tap(self.state,7) ^ get_tap(self.state,5) ^ get_tap(self.state,4) ^ get_tap(self.state,3);
+        let new  = get_tap(self.state,31) ^ get_tap(self.state,29) ^ get_tap(self.state,25) ^ get_tap(self.state,24);
         let old = self.state;
         self.state = (self.state << 1) | (new);
         old
@@ -109,6 +109,41 @@ impl WireMatrix {
         let conf = self.lfsr.next() as usize;
         let config = config_from_int(conf);
 
+        self.shuffle_data(config);
+        
+        if !self.collision() {
+            break;
+        }
+        println!("In a collisiion  with state = {}",conf);
+        }
+    }
+
+    pub fn shuffle_data_new(&mut self, config_targets: Vec<bool>, config_controls: Vec<bool>) {
+
+        let mut flattened_controls = flatten(self.controls);
+        
+        // println!("The flattened controls are \n {:?}", flattened_controls);
+        flattened_controls = riffle_shuffle(&flattened_controls, config_controls[26]);
+        // println!("The riffled controls are \n {:?}", flattened_controls);
+        flattened_controls.rotate_left(config_controls[25] as usize);
+        // println!("The rotated controls are \n {:?}", flattened_controls);
+
+        flattened_controls = walksman_permutation_10(&flattened_controls, &config_controls[0..25]);
+
+        self.controls = reshape(flattened_controls);
+        
+        let mut flattened_targets = self.targets.clone();
+        
+        flattened_targets = riffle_shuffle(&flattened_targets, config_targets[0]);
+        flattened_targets.rotate_left(config_targets[1] as usize);
+
+        flattened_targets = walksman_permutation_5(&flattened_targets, &config_targets[2..]);
+
+        self.targets = flattened_targets;
+    }
+
+    pub fn shuffle_data(&mut self, config: Vec<bool>) {
+
         let mut flattened_controls = flatten(self.controls);
         
         // println!("The flattened controls are \n {:?}", flattened_controls);
@@ -128,12 +163,7 @@ impl WireMatrix {
 
         flattened_targets = walksman_permutation_5(&flattened_targets, &config[0..=2].into_iter().chain(config[27..=31].into_iter()).map(|x| *x).collect::<Vec<bool>>());
 
-        self.targets = flattened_targets; 
-        if !self.collision() {
-            break;
-        }
-        println!("In a collisiion  with state = {}",conf);
-        }
+        self.targets = flattened_targets;
     }
 
     fn collision(&self) -> bool {
@@ -152,6 +182,7 @@ impl WireMatrix {
 
 #[cfg(test)]
 mod test {
+    use std::{collections::HashSet, usize};
     use super::*;
 
     #[test]
@@ -179,5 +210,79 @@ mod test {
         println!("The third targets are \n {:?}",wr.targets);
 
 
+    }
+
+    #[test]
+    fn test_shuffle_distribution( ) {
+        let mut set: HashSet<[[WireEntries;5];3]> = HashSet::new();
+        // The size should be 10!(3628800) * 5!(120)
+        const SET_SIZE: usize = 435456000;    
+
+        let mut wire_data: [[WireEntries;5];3] = [[WireEntries::default();5];3];
+        for i in 0..3 {
+
+            for j in 0..5 {
+                wire_data[i][j].position = ((i + 1) * (j + 1)) as u8;
+            }
+            
+        }
+        
+        println!("The wires base are {:?}", wire_data);
+
+        assert!(set.insert(wire_data.clone()));
+
+        let mut wr = WireMatrix::new(wire_data, 123123);
+
+        let mut i: u64 = u32::MAX as u64 * 4;
+
+        while i > 0 {
+            let conf = wr.lfsr.next() as usize;
+            let config = config_from_int(conf);
+            wr.shuffle_data(config);
+            set.insert([wr.targets.clone(), wr.controls[0].clone(), wr.controls[1].clone()]);
+            i = i -1;
+        }
+
+        println!("The set size is {:?}", set.len());
+
+        assert!(set.len() == SET_SIZE, "The set size should be 0")
+    }
+
+    #[test]
+    fn test_shuffle_distribution_new( ) {
+        let mut set: HashSet<[[WireEntries;5];3]> = HashSet::new();
+        // The size should be 10!(3628800) * 5!(120)
+        const SET_SIZE: usize = 435456000;    
+
+        let mut wire_data: [[WireEntries;5];3] = [[WireEntries::default();5];3];
+        for i in 0..3 {
+
+            for j in 0..5 {
+                wire_data[i][j].position = ((i + 1) * (j + 1)) as u8;
+            }
+            
+        }
+        
+        println!("The wires base are {:?}", wire_data);
+
+        assert!(set.insert(wire_data.clone()));
+
+        let mut wr = WireMatrix::new(wire_data, 123123);
+        let mut second_lfsr = LFSR::new(12332);
+
+        let mut i: u64 = u32::MAX as u64 * 4;
+
+        while i > 0 {
+            let conf = wr.lfsr.next() as usize;
+            let config_controls = config_from_int(conf);
+            let target_configs = config_from_int(second_lfsr.next() as usize);
+            wr.shuffle_data_new(target_configs, config_controls);
+            set.insert([wr.targets.clone(), wr.controls[0].clone(), wr.controls[1].clone()]);
+            i = i -1;
+        }
+
+        println!("The set size is {:?}", set.len());
+
+        assert!(set.len() == SET_SIZE, "The set size should be 0")
     }
 }
