@@ -17,7 +17,7 @@ module ShuffleTargets #(
 ///////////////////////////////////////////////////////////////////////
 // Internal Data
 ///////////////////////////////////////////////////////////////////////
-stream_type riffle_layer, rotate_layer;
+stream_type riffle_layer, rotate_layer, input_layer;
 
 AXI4S #(.DATA_WIDTH($bits(stream_type))) network_stream(), network_stream_delayed();
 
@@ -34,6 +34,7 @@ AXI4S #(.DATA_WIDTH($bits(stream_type))) network_stream(), network_stream_delaye
 assign network_stream.valid = in.valid;
 assign in.ready = network_stream.ready;
 assign network_stream.data = rotate_layer;
+assign input_layer = in.data;
 
 
 ///////////////////////////////////////////////////////////////////////
@@ -43,18 +44,18 @@ riffle #(
   .data_type(stream_type),
   .SIZE(TARGET_SIZE)
 ) riffle_data (
-  .input_val(in.data),
+  .input_val(input_layer),
   .output_val(riffle_layer),
-  .control(control[9])
+  .control(control[0])
 );
 
 rotate #(
-  .data_type(data_type),
+  .data_type(stream_type),
   .SIZE(TARGET_SIZE)
 ) rotate_data (
   .input_val(riffle_layer),
   .output_val(rotate_layer),
-  .control(control[8])
+  .control(control[1])
 );
 
 ///////////////////////////////////////////////////////////////////////
@@ -74,7 +75,7 @@ PermuteNetwork5 #(
 ) perm_5 (
   .clk(clk),
   .resetn(resetn),
-  .control(control[7:0]),
+  .control(control[9:2]),
   .out(out),
   .in(network_stream_delayed)
 );
@@ -118,7 +119,7 @@ assign network_stream.data = rotate_layer;
 // Riffle & Rotate Data
 ///////////////////////////////////////////////////////////////////////
 riffle #(
-  .data_type(data_type),
+  .data_type(stream_type),
   .SIZE(CONTROL_SIZE)
 ) riffle_data (
   .input_val(in.data),
@@ -127,7 +128,7 @@ riffle #(
 );
 
 rotate #(
-  .data_type(data_type),
+  .data_type(stream_type),
   .SIZE(CONTROL_SIZE)
 ) rotate_data (
   .input_val(riffle_layer),
@@ -162,7 +163,7 @@ endmodule : ShuffleControls
 //                          ┌─────────────────────────┐                
 //                          │                         │                
 //     ┌────┐   ┌─────┐     │ Target Shuffle          │    ┌──────┐
-//     │IN  │   │ E   ┼─────►                         ┼────► IN   │
+//     │IN  │   │ E   ┼─────►                         ┼────► OUT  │
 //     │W   │   │ x   │     │                         │    │ W    │
 //     │i   │   │ t   │     └─────────────────────────┘    │ i    │
 // ────►r   ┼───► r   │     ┌─────────────────────────┐    │ r    ┼───►
@@ -173,7 +174,6 @@ endmodule : ShuffleControls
 //     └────┘   └─────┘     │                         │    └──────┘
 //                          │                         │
 //                          └─────────────────────────┘
-
 module ShuffleWires #(
     type data_type = ShufflePkg::ActiveWire,
     parameter CONTROL_SIZE = 10,
@@ -184,9 +184,10 @@ module ShuffleWires #(
 ) (
   input wire clk,
   input wire resetn,
-  input logic [35:0] control,
-  output logic collision,
-  AXI4S.Master out,
+  input wire [31:0] controlConfig,
+  input wire [31:0] targetConfig,
+  AXI4S.Master controlOut,
+  AXI4S.Master targetOut,
   AXI4S.Slave in 
 );
 ///////////////////////////////////////////////////////////////////////
@@ -195,8 +196,8 @@ module ShuffleWires #(
 stream_type in_data;
 control_type control_data;
 
-AXI4S #(.DATA_WIDTH($bits(target_type))) target_in_stream(), target_out_stream(), target_out_stream_delayed();
-AXI4S #(.DATA_WIDTH($bits(control_type))) control_in_stream(), control_out_stream(), control_out_stream_delayed();
+AXI4S #(.DATA_WIDTH($bits(target_type))) target_in_stream(), target_out_stream();
+AXI4S #(.DATA_WIDTH($bits(control_type))) control_in_stream(), control_out_stream();
 
 ///////////////////////////////////////////////////////////////////////
 // Data management
@@ -204,7 +205,7 @@ AXI4S #(.DATA_WIDTH($bits(control_type))) control_in_stream(), control_out_strea
 
 assign in_data = in.data;
 assign target_in_stream.data = in_data[0];
-assign control_data[0] = in_data[1:2];
+assign control_data = in_data[1:2];
 assign control_in_stream.data = control_data;
 
 ///////////////////////////////////////////////////////////////////////
@@ -218,18 +219,10 @@ assign in.ready = target_in_stream.ready & control_in_stream.ready;
 // Shuffle
 ///////////////////////////////////////////////////////////////////////
 
-ShuffleControls #(
-    .data_type(data_type),
-    .CONTROL_SIZE(CONTROL_SIZE),
-    .stream_type(control_type)
-) shuffle_controls (
-  .clk(clk),
-  .resetn(resetn),
-  .control(control[26:0]),
-  .out(control_in_stream),
-  .in(control_out_stream) 
-);
 
+///////////////////////////////////////////////////////////////////////
+// Targets
+///////////////////////////////////////////////////////////////////////
 ShuffleTargets #(
     .data_type(data_type),
     .TARGET_SIZE(TARGET_SIZE),
@@ -237,24 +230,88 @@ ShuffleTargets #(
 ) shuffle_targets (
   .clk(clk),
   .resetn(resetn),
-  .control(control[35:27]),
-  .out(target_in_stream),
-  .in(target_out_stream) 
+  .control(targetConfig[9:0]),
+  .out(target_out_stream),
+  .in(target_in_stream) 
 );
 
 Passthrough buffer_targets (
   .clk(clk),
   .resetn(resetn),
-  .out(target_out_stream_delayed),
+  .out(targetOut),
   .in(target_out_stream)
+);
+
+///////////////////////////////////////////////////////////////////////
+// Controls
+///////////////////////////////////////////////////////////////////////
+
+ShuffleControls #(
+    .data_type(data_type),
+    .CONTROL_SIZE(CONTROL_SIZE),
+    .stream_type(control_type)
+) shuffle_controls (
+  .clk(clk),
+  .resetn(resetn),
+  .control(controlConfig[26:0]),
+  .out(control_out_stream),
+  .in(control_in_stream) 
 );
 
 Passthrough buffer_controls (
   .clk(clk),
   .resetn(resetn),
-  .out(control_out_stream_delayed),
+  .out(controlOut),
   .in(control_out_stream)
 );
+
+
+endmodule : ShuffleWires
+
+module ShuffleWiresWithCollision #(
+    type data_type = ShufflePkg::ActiveWire,
+    parameter CONTROL_SIZE = 10,
+    parameter TARGET_SIZE = 5,
+    type target_type = ShufflePkg::TargetStream,
+    type control_type = ShufflePkg::ControlStream,
+    type stream_type = ShufflePkg::WireData
+) (
+  input wire clk,
+  input wire resetn,
+  input wire [31:0] controlConfig,
+  input wire [31:0] targetConfig,
+  output logic collision,
+  AXI4S.Master out,
+  AXI4S.Slave in 
+);
+///////////////////////////////////////////////////////////////////////
+// Internal Data
+///////////////////////////////////////////////////////////////////////
+
+AXI4S #(.DATA_WIDTH($bits(target_type))) target_out_stream();
+AXI4S #(.DATA_WIDTH($bits(control_type)))control_out_stream();
+
+///////////////////////////////////////////////////////////////////////
+// Shuffle
+///////////////////////////////////////////////////////////////////////
+
+ShuffleWires #(
+    .CONTROL_SIZE(CONTROL_SIZE),
+    .TARGET_SIZE(TARGET_SIZE),
+    .data_type(data_type),
+    .target_type(target_type),
+    .control_type(control_type),
+    .stream_type(stream_type)
+) shuffle_wire (
+  .clk(clk),
+  .resetn(resetn),
+  .controlConfig(controlConfig),
+  .targetConfig(targetConfig),
+  .controlOut(target_out_stream),
+  .targetOut(control_out_stream),
+  .in(in) 
+);
+
 ///////////////////////////////////////////////////////////////////////
 // Collision
 ///////////////////////////////////////////////////////////////////////
@@ -264,14 +321,14 @@ StreamCollisionCheck #(
 ) collision_check (
   .clk(clk),
   .resetn(resetn),
-  .targets(target_out_stream_delayed),
-  .controls(control_out_stream_delayed),
+  .targets(target_out_stream),
+  .controls(control_out_stream),
   .wires(out),
   .collision(collision)
 );
 
 
-endmodule : ShuffleWires
+endmodule : ShuffleWiresWithCollision
 
 // ┌─────────────────────────────────┐         
 // │                                 │         
@@ -404,7 +461,7 @@ LFSR32 lfsr (
 // Shuffle
 ///////////////////////////////////////////////////////////////////////////
 
-ShuffleWires #(
+ShuffleWiresWithCollision #(
   .data_type(ShufflePkg::ActiveWire),
   .CONTROL_SIZE(10),
   .TARGET_SIZE(5),

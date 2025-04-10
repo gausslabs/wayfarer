@@ -1,8 +1,8 @@
+use local_mixing::replacement::lfsr::WireEntries;
 use rand::Rng;
+use shuffle::{config_from_int, string_wires, WireMatrix, LFSR, flatten_full };
 use std::env;
-use utilities::{
-    write_file
-};
+use utilities::write_file;
 mod shuffle;
 
 fn main() {
@@ -40,6 +40,30 @@ fn main() {
     // Creating the reference values
     //////////////////////////////////////////////////////////////////////////
     println!("This is data for the model shuffle-data");
+    let mut wire_data: [[WireEntries;5];3] = [[WireEntries::default();5];3];
+    let mut pointer = 0;
+    for i in 0..3 {
+        for j in 0..5 {
+            wire_data[i][j].position = pointer;
+            pointer +=1;
+        }
+    }
+    let mut wire_list:Vec<[[WireEntries;5];3]> = Vec::new();
+    let mut wr = WireMatrix::new(wire_data, 345668);
+    let mut first_lfsr = LFSR::new(345668);
+    let mut second_lfsr = LFSR::new(12332);
+
+    wire_list.push(wire_data);
+
+    let max: u64 = 1 << 19;
+
+    for _ in 0..max {
+        let contol_configs = config_from_int::<27>(first_lfsr.next() as usize);
+        let target_configs = config_from_int::<10>(second_lfsr.next() as usize);
+        wr.shuffle_data_new(target_configs, contol_configs);
+        // populating the vec
+        wire_list.push(wr.current_wire_data());
+    }
 
     let config_value = (0..10)
         .map(|n| format!("{:04x}", n))
@@ -50,14 +74,13 @@ fn main() {
     // Creating input and output
     //////////////////////////////////////////////////////////////////////////
 
-    let ref_value = (0..10)
-        .map(|n| format!("{:04x}", n))
+    let ref_value = wire_list[0..(wire_list.len() - 1)].iter()
+        .map(|n| string_wires( &flatten_full(n) , 0) )
         .collect::<Vec<_>>()
         .join("\n");
 
-    let sequence = (0..10)
-        .map(|_| rng.gen_range(0..100))
-        .map(|n| format!("{:04x}", n))
+    let sequence = wire_list[1..].iter()
+        .map(|n| string_wires(&flatten_full(n), 0) )
         .collect::<Vec<_>>()
         .join("\n");
 
@@ -79,7 +102,7 @@ fn main() {
         }
     };
 
-    match write_file(&reference, &ref_value) {
+    match write_file(&reference, &sequence) {
         Ok(_) => {
             println!("[INFO] Successfully written to file!");
         }

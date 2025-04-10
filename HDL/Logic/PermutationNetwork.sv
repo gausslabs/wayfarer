@@ -62,8 +62,11 @@ begin
 end
 else 
 begin
-  assign riffle_even[2*i] = input_val[i];  
-  assign riffle_even[2*i + 1] = input_val[i + HALF_SIZE];  
+  assign riffle_even[2*i] = input_val[i];
+  if ( (SIZE %2) != 0)
+  assign riffle_even[2*i + 1] = input_val[i + HALF_SIZE + 1];
+  else
+  assign riffle_even[2*i + 1] = input_val[i + HALF_SIZE];
 end
 end
 
@@ -76,14 +79,14 @@ begin
 if ( i == HALF_SIZE )
 begin
   if (2*i < SIZE)
-  assign riffle_even[2*i] = input_val[i + HALF_SIZE];
+  assign riffle_odd[2*i] = input_val[i + HALF_SIZE];
   if (((2*i)+1) < SIZE)
-  assign riffle_even[2*i + 1] = input_val[i];
+  assign riffle_odd[2*i + 1] = input_val[i];
 end
 else 
 begin
-  assign riffle_even[2*i] = input_val[i + HALF_SIZE];  
-  assign riffle_even[2*i + 1] = input_val[i];  
+  assign riffle_odd[2*i] = input_val[i + HALF_SIZE];  
+  assign riffle_odd[2*i + 1] = input_val[i];  
 end
 end
 

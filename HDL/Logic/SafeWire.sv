@@ -1,6 +1,7 @@
 `ifndef SAFE_WIRE
  `define SAFE_WIRE
 
+`include "AXISFIFO.sv"
 
 module SafeWireConfig (
   input wire clk,

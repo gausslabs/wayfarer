@@ -1,8 +1,59 @@
+use std::fmt::Debug;
 use std::u128;
 
-use local_mixing::replacement::permutations::{riffle_shuffle, walksman_permutation_5};
+use local_mixing::replacement::permutations::{ walksman_permutation_5};
 use local_mixing::replacement::lfsr::WireEntries;
 use local_mixing::replacement::permutations::walksman_permutation_10;
+
+pub fn riffle_shuffle<const N_IN: usize, T: Default + Copy + Debug>(a: &[T; N_IN], even: bool) -> [T; N_IN] {
+    let mut out = [T::default(); N_IN];
+    let half_point: usize = N_IN / 2;
+    if N_IN % 2 == 1 {
+        if even {
+            let left = &a[0..=half_point];
+            let right = &a[(half_point + 1)..];
+            for i in 0..=half_point {
+                if i == half_point {
+                    out[2*i] = left [i];
+                } else {
+                    out[2*i] = left[i];
+                    out[2*i + 1] = right[i];
+                }
+            }
+        } else {
+            let left = &a[0..half_point];
+            let right = &a[half_point..];
+            for i in 0..N_IN {
+                if i % 2 == 0 {
+                    out[i] = right[i / 2];
+                } else {
+                    out[i] = left[i / 2];
+                }
+            }
+        }
+    } else {
+        let left = &a[0..half_point];
+        let right = &a[half_point..];
+        if even {
+            for i in 0..N_IN {
+                if i % 2 == 0 {
+                    out[i] = left[i / 2];
+                } else {
+                    out[i] = right[i / 2];
+                }
+            }
+        } else {
+            for i in 0..N_IN {
+                if i % 2 == 0 {
+                    out[i] = right[i / 2];
+                } else {
+                    out[i] = left[i / 2];
+                }
+            }
+        }
+    }
+    out
+}
 
 
 fn int_wire(w: WireEntries) -> usize {
@@ -11,21 +62,42 @@ fn int_wire(w: WireEntries) -> usize {
     value
 }
 
-fn string_wires(wires: &[WireEntries], start_value: u128) -> String {
+pub fn string_wires(wires: &[WireEntries], start_value: u128) -> String {
     let mut value: u128 = start_value;
     for (_i, &w) in wires.iter().enumerate() {
         value = (value << (5) ) | int_wire(w) as u128;
     }
-    format!("{:021x}",value)
+    format!("{:019x}",value)
 }
 
-fn config_from_int<const NUMBER_ELEMENTS: usize>(index: usize) -> Vec<bool> {
+pub fn config_from_int<const NUMBER_ELEMENTS: usize>(index: usize) -> Vec<bool> {
     let mut control = vec![];
     for i in 0..NUMBER_ELEMENTS {
         control.push(((index >> i) & 1) == 1);
     }
 
     control
+}
+
+fn int_from_config(config: &[bool]) -> usize {
+    let mut initial = 0;
+
+    for (index, &i) in config.iter().enumerate() {
+        if i {
+            initial = initial << index + 1;
+        }
+    }
+
+    initial
+}
+
+pub fn flatten_full(wire: &[[WireEntries;5];3]) -> [WireEntries;15] {
+    let mut flattened = [WireEntries::default();15];
+    for i in 0..15 {
+        flattened[i] = wire[i/5][i%5];
+    }
+
+    flattened
 }
 
 fn flatten(wire: [[WireEntries;5];2]) -> [WireEntries;10] {
@@ -76,7 +148,7 @@ impl LFSR {
 
 impl LFSR {
 
-    fn next(&mut self) -> u32 {
+    pub fn next(&mut self) -> u32 {
         let new  = get_tap(self.state,31) ^ get_tap(self.state,29) ^ get_tap(self.state,25) ^ get_tap(self.state,24);
         let old = self.state;
         self.state = (self.state << 1) | (new);
@@ -102,7 +174,11 @@ impl WireMatrix {
         let all_wires = self.targets.clone().into_iter().chain(self.controls[0].clone().into_iter().chain(self.controls[1].clone().into_iter())).collect::<Vec<_>>();
         string_wires(&all_wires, self.seed as u128)
 
-    } 
+    }
+
+    pub fn current_wire_data(&self) -> [[WireEntries;5];3] {
+        [self.targets, self.controls[0], self.controls[1]]
+    }
 
     pub fn shuffle(&mut self) {
         loop {
@@ -118,28 +194,33 @@ impl WireMatrix {
         }
     }
 
-    pub fn shuffle_data_new(&mut self, config_targets: Vec<bool>, config_controls: Vec<bool>) {
+    pub fn shuffle_data_new(&mut self, target_configs: Vec<bool>, contol_configs: Vec<bool>) {
 
-        // println!("The un-flattened controls are \n {:?}", self.controls);
+        // println!("The un-flattened controls are \n {:?}", self.controls); 
         let mut flattened_controls = flatten(self.controls);
         
         // println!("The flattened controls are \n {:?}", flattened_controls);
-        flattened_controls = riffle_shuffle(&flattened_controls, config_controls[26]);
+        flattened_controls = riffle_shuffle(&flattened_controls, contol_configs[26]);
         // println!("The riffled controls are \n {:?}", flattened_controls);
-        flattened_controls.rotate_left(config_controls[25] as usize);
+        flattened_controls.rotate_left(contol_configs[25] as usize);
         // println!("The rotated controls are \n {:?}", flattened_controls);
         
-        flattened_controls = walksman_permutation_10(&flattened_controls, &config_controls[0..25]);
+        flattened_controls = walksman_permutation_10(&flattened_controls, &contol_configs[0..25]);
         // println!("The permuted controls are \n {:?}", flattened_controls);
-
+        
         self.controls = reshape(flattened_controls);
         
         let mut flattened_targets = self.targets.clone();
+        // println!("The flattened targets are \n {:?}", flattened_targets);
         
-        flattened_targets = riffle_shuffle(&flattened_targets, config_targets[0]);
-        flattened_targets.rotate_left(config_targets[1] as usize);
-
-        flattened_targets = walksman_permutation_5(&flattened_targets, &config_targets[2..]);
+        flattened_targets = riffle_shuffle(&flattened_targets, target_configs[0]);
+        // println!("The riffled targets are \n {:?}", flattened_targets);
+        flattened_targets.rotate_left(target_configs[1] as usize);
+        // println!("The rotated targets are \n {:?}", flattened_targets);
+        
+        flattened_targets = walksman_permutation_5(&flattened_targets, &target_configs[2..]);
+        // println!("The permuted targets are \n {:?}", flattened_targets);
+        // println!("The permuted targets configs => \n {:?} ({})", target_configs, int_from_config(&target_configs[2..]));
 
         self.targets = flattened_targets;
     }
@@ -188,29 +269,34 @@ mod test {
     use super::*;
 
     #[test]
-    fn test_shuffle() {
-        let wires = [[WireEntries{present:false, position: 0}, WireEntries{present:false, position: 1}, WireEntries{present:false, position: 2}, WireEntries{present:false, position: 3}, WireEntries{present:false, position: 4}],
-        [WireEntries{present:false, position: 5}, WireEntries{present:false, position: 6}, WireEntries{present:false, position: 7}, WireEntries{present:false, position: 8}, WireEntries{present:false, position:9}],
-        [WireEntries{present:false, position: 10}, WireEntries{present:false, position: 11}, WireEntries{present:false, position: 12}, WireEntries{present:false, position: 13}, WireEntries{present:false, position: 14}]];
+    fn test_shuffle_debug() {
+        let mut first_lfsr = LFSR::new(345668);
+        let mut second_lfsr = LFSR::new(12332);
+        let mut wires: [[WireEntries;5];3] = [[WireEntries::default();5];3];
+        let mut pointer = 0;
+        for i in 0..3 {
+            for j in 0..5 {
+                wires[i][j].position = pointer;
+                pointer +=1;
+            }
+        }
 
         let mut wr = WireMatrix::new(wires, 123);
 
-        println!("The initial wires are \n {}",wr.as_string());
+        println!("The initial wires are \n {}",string_wires(&flatten_full(&wr.current_wire_data()), 0));
         println!("The initial controls are \n {:?}",wr.controls);
         println!("The initial targets are \n {:?}",wr.targets);
 
-        wr.shuffle();
+        let contol_configs = config_from_int::<27>(first_lfsr.next() as usize);
+        let target_configs = config_from_int::<10>(second_lfsr.next() as usize);
+        println!("The targets configs => \n {:?} ({})", target_configs, int_from_config(&target_configs));
 
-        println!("The second wires are \n {}",wr.as_string());
-        println!("The second controls are \n {:?}",wr.controls);
-        println!("The second targets are \n {:?}",wr.targets);
+        // wr.shuffle_data_new(target_configs, contol_configs.clone());
 
-        wr.shuffle();
-
-        println!("The third wires are \n {}",wr.as_string());
-        println!("The third controls are \n {:?}",wr.controls);
-        println!("The third targets are \n {:?}",wr.targets);
-
+        println!("The shuffled controls are \n {:?}",wr.controls);
+        println!("The shuffled targets are \n {:?}",wr.targets);
+        wr.targets = [WireEntries{position: 3, present: false},WireEntries{position: 4, present: false},WireEntries{position: 2, present: false},WireEntries{position: 0, present: false},WireEntries{position: 1, present: false}];
+        wr.shuffle_data_new(vec![true, false, false, false, false, false, false, false, false, false], contol_configs);
 
     }
 
@@ -275,7 +361,7 @@ mod test {
         let mut wr = WireMatrix::new(wire_data, 345668);
         let mut second_lfsr = LFSR::new(12332);
 
-        let max: u64 = 1 << 29;
+        let max: u64 = 1 << 34;
 
         for _i in 0..max {
             let conf = wr.lfsr.next() as usize;

@@ -85,3 +85,11 @@ vivado_sim_proj(
   top_module = "Permute_10_TB",
   hex_files = ["streamInput.hex","config.hex","referenceStream.hex"]
 )
+
+vivado_sim_proj(
+  name = "ShuffleData",
+  srcs = glob(["HDL/Types/*.sv", "HDL/Logic/*.sv", "HDL/Tests/Infra/*.sv", "HDL/Generated/*.sv", "HDL/Tests/ShuffleData/*.sv"]),
+  includes = ["./HDL/Types", "./HDL/Logic", "./HDL/Tests/Infra", "./HDL/Generated", "./HDL/Tests/ShuffleData"],
+  top_module = "ShuffleData_TB",
+  hex_files = ["streamInput.hex","referenceStream.hex"]
+)

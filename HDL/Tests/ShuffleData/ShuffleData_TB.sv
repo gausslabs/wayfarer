@@ -1,18 +1,18 @@
-module %NAME%_TB ();
+module ShuffleData_TB ();
 
 logic clk, resetn, test_pass, equal;
 localparam NUMBER_OF_GATES = 1;
-localparam DATA_SIZE = ;
+localparam DATA_SIZE = 15*5;
 AXI4S #(.DATA_WIDTH(DATA_SIZE))  source(), configuration(), out();
 ///////////////////////////////////////////////////
 // Input Source
 ///////////////////////////////////////////////////
-localparam DATA_WIDTH = DATA_SIZE;
-localparam INPUT_DATA_LIMIT        = (1 << DATA_WIDTH) - 1;
-localparam INPUT_DATA_ADDR_WIDTH   = $clog2(INPUT_DATA_LIMIT);
+localparam INPUT_DATA_WIDTH       = DATA_SIZE;
+localparam INPUT_DATA_LIMIT       = (1 << INPUT_DATA_WIDTH) - 1;
+localparam INPUT_DATA_ADDR_WIDTH  = $clog2(INPUT_DATA_LIMIT);
 localparam INPUT_DATA_SOURCE_FILE = "streamInput.hex";
 AXISSource #(
-  .DATA_WIDTH(DATA_WIDTH),
+  .DATA_WIDTH(INPUT_DATA_WIDTH),
   .ADDR_WIDTH(INPUT_DATA_ADDR_WIDTH),
   .LIMIT(INPUT_DATA_LIMIT),
   .SOURCE_FILE(INPUT_DATA_SOURCE_FILE)
@@ -42,17 +42,25 @@ AXISSource #(
 ///////////////////////////////////////////////////
 // Design
 ///////////////////////////////////////////////////
+logic [31:0] seeds [0:1];
 
+ShuffleDataWrapper dut (
+  .clk(clk),
+  .resetn(resetn),
+  .seeds(seeds),
+  .out(out),
+  .in(source) 
+);
 
 ///////////////////////////////////////////////////
 // Output comparrison
 ///////////////////////////////////////////////////
-localparam GATE_OUTPUT_LIMIT      = (1 << DATA_WIDTH) - 1;
+localparam GATE_OUTPUT_LIMIT      = (1 << INPUT_DATA_WIDTH) - 1;
 localparam GATE_OUTPUT_ADDR_WIDTH = $clog2(GATE_OUTPUT_LIMIT);
 localparam GATE_OUTPUT_SOURCE_FILE = "referenceStream.hex";
 
 AXISReferenceComparator #(
-  .DATA_WIDTH(DATA_WIDTH),
+  .DATA_WIDTH(INPUT_DATA_WIDTH),
   .ADDR_WIDTH(GATE_OUTPUT_ADDR_WIDTH),
   .NAME("GATE"),
   .LIMIT(GATE_OUTPUT_LIMIT),
@@ -87,18 +95,20 @@ end
 
 initial
 begin
-  $dumpfile("%NAME%-wave.vcd"); 
-  $dumpvars (0, %NAME%_TB);
+  $dumpfile("ShuffleData-wave.vcd"); 
+  $dumpvars (0, ShuffleData_TB);
 end
 
 initial
 begin
   clk = 0;
   resetn = 0;
+  seeds[0] = 32'd345668;
+  seeds[1] = 32'd12332;
 
   #10 resetn = 1;
 
-#105000 $finish();
+#26ms $finish();
 end
 
 
