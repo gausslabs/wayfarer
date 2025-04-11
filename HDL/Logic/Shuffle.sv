@@ -333,7 +333,7 @@ endmodule : ShuffleWiresWithCollision
 // ┌─────────────────────────────────┐         
 // │                                 │         
 // │  Shuffle Wires                  ┼────────►
-// │                                 │   Wires    
+// │  With Collision Check           │   Wires    
 // │                                 │         
 // └────▲──────┬───────────▲─────────┘         
 // Wires│      │c          │                   
@@ -351,7 +351,7 @@ module Shuffle #(
   input wire resetn,
   output data_type wires_out,
   output logic wires_valid,
-  input seed_type seed,
+  input seed_type seeds [0:1],
   input logic shuffle_wires,
   AXI4S.Slave wires
 );
@@ -362,6 +362,11 @@ ShufflePkg::Targets target_values;
 ShufflePkg::ControlData control_data;
 data_type wire_data, shuffled_wires;
 logic shuffled, collision;
+logic pulse, resetn_and_shuffle;
+
+///////////////////////////////////////////////////////////////////////////
+// FSM Enum
+///////////////////////////////////////////////////////////////////////////
 
 typedef enum logic [1:0] { 
   EXTERNAL_LOAD,
@@ -381,22 +386,23 @@ always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
+  wires_valid <= shuffled;
   if (current_state == EXTERNAL_LOAD)
     wire_data <= wires.data;
   else
   begin
-    if (shuffled)
-      wire_data <= shuffled_wires;
+    if(collision_stream.valid)
+    wire_data <= shuffled_wires;
   end
 end
 else
 begin
   wire_data <= 0;
+  wires_valid <= 0;
 end
 end
 
-assign wires_valid = (current_state == IDLE);
-
+assign wires_out = wire_data;
 assign wires.ready = (current_state == EXTERNAL_LOAD);
 
 ///////////////////////////////////////////////////////////////////////////
@@ -431,12 +437,12 @@ begin
     end
   endcase
 end
-logic pulse;
 
+assign resetn_and_shuffle = resetn & (current_state == SHUFFLE);
 
 PulseGenerator pulse_generator (
   .clk(clk),
-  .resetn(resetn &(current_state == SHUFFLE)),
+  .resetn(resetn_and_shuffle),
   .pulse(pulse)
 );
 
@@ -448,13 +454,22 @@ assign shuffled_wires = collision_stream.data;
 ///////////////////////////////////////////////////////////////////////////
 // LFSR
 ///////////////////////////////////////////////////////////////////////////
-seed_type lfsr_value;
-LFSR32 lfsr (
+
+seed_type target_config, control_config;
+LFSR32 target_lfsr (
   .clk(clk),
   .resetn(resetn & (current_state != EXTERNAL_LOAD)),
   .next((current_state == SHUFFLE) & (next_state != SHUFFLE)),
-  .seed(seed),
-  .out(lfsr_value)
+  .seed(seeds[1]),
+  .out(target_config)
+);
+
+LFSR32 control_lfsr (
+  .clk(clk),
+  .resetn(resetn & (current_state != EXTERNAL_LOAD)),
+  .next((current_state == SHUFFLE) & (next_state != SHUFFLE)),
+  .seed(seeds[1]),
+  .out(control_config)
 );
 
 ///////////////////////////////////////////////////////////////////////////
@@ -470,11 +485,12 @@ ShuffleWiresWithCollision #(
   .stream_type(data_type)
 ) shuffle_wire_matrix (
   .clk(clk),
-  .resetn(resetn &(current_state == SHUFFLE)),
-  .control({lfsr_value[3:0],lfsr_value}),
+  .resetn(resetn & (current_state != EXTERNAL_LOAD)),
   .collision(collision),
+  .controlConfig(control_config),
+  .targetConfig(target_config),
   .out(collision_stream),
- .in(wire_values)
+  .in(wire_values)
 );
 
 
