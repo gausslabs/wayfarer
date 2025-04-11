@@ -6,6 +6,7 @@ pub mod lfsrs;
 pub mod stages;
 pub mod wires;
 pub mod agent;
+pub mod shuffle;
 
 pub fn write_file(file_path: &str, contents: &str) -> Result<()> {
     let mut file = File::create(file_path)?;

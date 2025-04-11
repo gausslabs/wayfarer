@@ -1,59 +1,9 @@
 use std::fmt::Debug;
 use std::u128;
 
-use local_mixing::replacement::permutations::{ walksman_permutation_5};
+use local_mixing::replacement::permutations::{riffle_shuffle, walksman_permutation_5};
 use local_mixing::replacement::lfsr::WireEntries;
 use local_mixing::replacement::permutations::walksman_permutation_10;
-
-pub fn riffle_shuffle<const N_IN: usize, T: Default + Copy + Debug>(a: &[T; N_IN], even: bool) -> [T; N_IN] {
-    let mut out = [T::default(); N_IN];
-    let half_point: usize = N_IN / 2;
-    if N_IN % 2 == 1 {
-        if even {
-            let left = &a[0..=half_point];
-            let right = &a[(half_point + 1)..];
-            for i in 0..=half_point {
-                if i == half_point {
-                    out[2*i] = left [i];
-                } else {
-                    out[2*i] = left[i];
-                    out[2*i + 1] = right[i];
-                }
-            }
-        } else {
-            let left = &a[0..half_point];
-            let right = &a[half_point..];
-            for i in 0..N_IN {
-                if i % 2 == 0 {
-                    out[i] = right[i / 2];
-                } else {
-                    out[i] = left[i / 2];
-                }
-            }
-        }
-    } else {
-        let left = &a[0..half_point];
-        let right = &a[half_point..];
-        if even {
-            for i in 0..N_IN {
-                if i % 2 == 0 {
-                    out[i] = left[i / 2];
-                } else {
-                    out[i] = right[i / 2];
-                }
-            }
-        } else {
-            for i in 0..N_IN {
-                if i % 2 == 0 {
-                    out[i] = right[i / 2];
-                } else {
-                    out[i] = left[i / 2];
-                }
-            }
-        }
-    }
-    out
-}
 
 
 fn int_wire(w: WireEntries) -> usize {
@@ -249,7 +199,7 @@ impl WireMatrix {
         self.targets = flattened_targets;
     }
 
-    fn collision(&self) -> bool {
+    pub fn collision(&self) -> bool {
         let mut ans = false;
 
         for i in 0..5 {

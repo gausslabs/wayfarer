@@ -307,8 +307,8 @@ ShuffleWires #(
   .resetn(resetn),
   .controlConfig(controlConfig),
   .targetConfig(targetConfig),
-  .controlOut(target_out_stream),
-  .targetOut(control_out_stream),
+  .controlOut(control_out_stream),
+  .targetOut(target_out_stream),
   .in(in) 
 );
 

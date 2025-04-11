@@ -32,6 +32,12 @@ module CollisionCheck #(
 ) (
   input wire clk,
   input wire resetn,
+  input wire validIn,
+  output logic validOut,
+  input wire readyIn,
+  output logic readyOut,
+  input ShufflePkg::WireData wireDataIn,
+  output ShufflePkg::WireData wireDataOut,
   input ShufflePkg::Targets targets,
   input ShufflePkg::Controls controls,
   output logic collision
@@ -49,13 +55,17 @@ always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
- collision <= |collisionDetected;
+  wireDataOut <= wireDataIn;
+  validOut <= validIn;
+  collision <= |collisionDetected;
 end
 else
 begin
  collision <= 0;
 end
 end
+
+assign readyOut = readyIn;
 
 ///////////////////////////////////////////////////////////////////////////
 // processing
@@ -89,25 +99,16 @@ module StreamCollisionCheck #(
 // internal nets
 ///////////////////////////////////////////////////////////////////////////
 ShufflePkg::Targets target_values;
+ShufflePkg::TargetStream target_data;
 ShufflePkg::ControlData control_data;
-ShufflePkg::WireData wire_data;
+ShufflePkg::WireData wire_data_in, wire_data_out;
 ShufflePkg::Controls control_values;
+logic collision_ready, collision_valid;
 logic collisionDetected;
 
 ///////////////////////////////////////////////////////////////////////////
 // output
 ///////////////////////////////////////////////////////////////////////////
-always_ff @ (posedge clk)
-begin
-if(resetn)
-begin
- collision <= collisionDetected & targets.valid & controls.valid & wires.ready;
-end
-else
-begin
- collision <= 0;
-end
-end
 
 always_ff @ (posedge clk)
 begin
@@ -115,14 +116,16 @@ if(resetn)
 begin
   if (wires.ready)
   begin
-    wires.data <= wire_data;  
-    wires.valid <= targets.valid & controls.valid;
+    wires.data <= wire_data_out;  
+    wires.valid <= collision_valid;
+    collision <= collisionDetected;
   end
 end
 else
 begin
   wires.data <= 0;  
   wires.valid <= 0;
+  collision <= 0;
 end
 end
 
@@ -131,29 +134,36 @@ end
 // Data management
 ///////////////////////////////////////////////////////////////////////
 
-`PACKED_TO_UNPACKED_CONVERTER(targets.data, target_values.row, NUMBER_OF_COLUMNS, i)
+`PACKED_TO_UNPACKED_CONVERTER(target_data, target_values.row, NUMBER_OF_COLUMNS, i)
 
+assign target_data = targets.data;
 assign control_data = controls.data;
 
 `PACKED_TO_UNPACKED_CONVERTER(control_data[0], control_values.row[0], NUMBER_OF_COLUMNS, j)
 `PACKED_TO_UNPACKED_CONVERTER(control_data[1], control_values.row[1], NUMBER_OF_COLUMNS, k)
 
-assign wire_data[0] = targets.data;
-assign wire_data[1] = control_data[0];
-assign wire_data[2] = control_data[1];
+assign wire_data_in[0] = targets.data;
+assign wire_data_in[1] = control_data[0];
+assign wire_data_in[2] = control_data[1];
 
 ///////////////////////////////////////////////////////////////////////////
 // processing
 ///////////////////////////////////////////////////////////////////////////
 
-assign targets.ready = wires.ready;
-assign controls.ready = wires.ready;
+assign targets.ready = collision_ready;
+assign controls.ready = collision_ready;
 
 CollisionCheck #(
   .NUMBER_OF_COLUMNS(NUMBER_OF_COLUMNS)
 ) collision_check (
   .clk(clk),
   .resetn(resetn),
+  .validIn(targets.valid & controls.valid),
+  .validOut(collision_valid),
+  .readyIn(wires.ready),
+  .readyOut(collision_ready),
+  .wireDataIn(wire_data_in),
+  .wireDataOut(wire_data_out),
   .targets(target_values),
   .controls(control_values),
   .collision(collisionDetected)

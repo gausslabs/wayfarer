@@ -93,3 +93,11 @@ vivado_sim_proj(
   top_module = "ShuffleData_TB",
   hex_files = ["streamInput.hex","referenceStream.hex"]
 )
+
+vivado_sim_proj(
+  name = "ShuffleDataWithCollision",
+  srcs = glob(["HDL/Types/*.sv", "HDL/Logic/*.sv", "HDL/Tests/Infra/*.sv", "HDL/Generated/*.sv", "HDL/Tests/ShuffleDataWithCollision/*.sv"]),
+  includes = ["./HDL/Types", "./HDL/Logic", "./HDL/Tests/Infra", "./HDL/Generated", "./HDL/Tests/ShuffleDataWithCollision"],
+  top_module = "ShuffleDataWithCollision_TB",
+  hex_files = ["streamInput.hex", "collision.hex","referenceStream.hex"]
+)
