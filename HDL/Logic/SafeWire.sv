@@ -3,16 +3,134 @@
 
 `include "AXISFIFO.sv"
 
-module SafeWireConfig (
+module SearchCircuitConfig #(
+  parameter NUMBER_OF_GATES = ShufflePkg::NUMBER_OF_COLUMNS,
+  parameter LFSR_SIZE = ShufflePkg::PERMUTATION_LFSR_SIZE
+) (
   input wire clk,
   input wire resetn,
   input wire validConfig,
   input wire sample,
-  input wire [9:0] seed,
+  output logic validConfigOut,
+  input ShufflePkg::WireData wireDataIn,
+  input SoftwareInterfacePkg::ShuffleLfsrType shuffleSeeds,
+  output AgentPkg::GateConfig wires [0:NUMBER_OF_GATES - 1]
+);
+////////////////////////////////////////////////////////////////////
+// Internal nets
+////////////////////////////////////////////////////////////////////
+logic [0:NUMBER_OF_GATES - 1] valid_permutations;
+wire [0:1] [LFSR_SIZE - 1:0] config_seeds [0:NUMBER_OF_GATES - 1];
+ShufflePkg::ActiveWire active_wires [0:2] [0:NUMBER_OF_GATES - 1];
+assign validConfigOut = &valid_permutations;
+
+genvar i;
+for (i=0; i<NUMBER_OF_GATES; i++) begin
+  assign active_wires[0][i] = wireDataIn[0][i];
+  assign active_wires[1][i] = wireDataIn[1][i];
+  assign active_wires[2][i] = wireDataIn[2][i];
+  assign config_seeds[i][0] = shuffleSeeds[i][0];
+  assign config_seeds[i][1] = shuffleSeeds[i][1];
+
+  SafeConfig #(
+    .LFSR_SIZE(LFSR_SIZE)
+  ) safe_config (
+    .clk(clk),
+    .resetn(resetn),
+    .validConfig(validConfig),
+    .sample(sample),
+    .seeds(config_seeds[i]),
+    .activeWires({active_wires[0][i], active_wires[1][i], active_wires[2][i]}),
+    .validPermutation(valid_permutations[i]),
+    .wires(wires[i])
+  );
+end
+
+
+endmodule
+
+module SafeConfig #(
+  parameter LFSR_SIZE = 10
+)(
+  input wire clk,
+  input wire resetn,
+  input wire validConfig,
+  input wire sample,
+  input wire [0:1] [LFSR_SIZE - 1:0] seeds,
   input ShufflePkg::ActiveWire activeWires [0:2],
   output logic validPermutation,
   output AgentPkg::GateConfig wires
 );
+////////////////////////////////////////////////////////////////////////////
+// Internal nets
+////////////////////////////////////////////////////////////////////////////
+AgentPkg::GateConfig wire_config;
+logic valid_wire;
+assign wires.cSelect = wire_config.cSelect;
+assign wires.aSelect = wire_config.aSelect;
+assign wires.bSelect = wire_config.bSelect;
+assign wires.gateSelect = gate_config.data;
+
+assign validPermutation = valid_wire & gate_config.valid;
+AXI4S #(.DATA_WIDTH(4)) gate_config();
+
+PulseGenerator pulse_generator (
+  .clk(clk),
+  .resetn(resetn & sample),
+  .pulse(gate_config.ready)
+);
+
+////////////////////////////////////////////////////////////////////////////
+// Wire config
+////////////////////////////////////////////////////////////////////////////
+
+SafeWireConfig #(
+  .LFSR_SIZE(LFSR_SIZE)
+) wire_config_rng (
+  .clk(clk),
+  .resetn(resetn),
+  .validConfig(validConfig),
+  .sample(sample),
+  .seed(seeds[0]),
+  .activeWires(activeWires),
+  .validPermutation(valid_wire),
+  .wires(wire_config)
+);
+
+////////////////////////////////////////////////////////////////////////////
+// gate config
+////////////////////////////////////////////////////////////////////////////
+
+LFSR10MOD11 gate_prng (
+  .clk(clk),
+  .resetn(resetn),
+  .seed(seeds[1]),
+  .out(gate_config)
+);
+
+endmodule : SafeConfig
+
+module SafeWireConfig #(
+  parameter LFSR_SIZE = 10
+)(
+  input wire clk,
+  input wire resetn,
+  input wire validConfig,
+  input wire sample,
+  input wire [LFSR_SIZE - 1:0] seed,
+  input ShufflePkg::ActiveWire activeWires [0:2],
+  output logic validPermutation,
+  output AgentPkg::GateConfig wires
+);
+initial
+begin
+  input_size: assert (LFSR_SIZE == 10)
+    else
+    begin
+    $error("Assertion lfsr size for safe wire config failed got -> %d,  expected %d!",LFSR_SIZE, 10);
+    $finish;
+    end
+end
 ///////////////////////////////////////////////////////////////////
 // internal nets
 ///////////////////////////////////////////////////////////////////
@@ -41,9 +159,9 @@ begin
 end
 else
 begin
-  activeWireConfig[0] <= 0;
-  activeWireConfig[1] <= 0;
-  activeWireConfig[2] <= 0;
+  activeWireConfig[0] <= activeWires[0];
+  activeWireConfig[1] <= activeWires[1];
+  activeWireConfig[2] <= activeWires[2];
 end
 end
 

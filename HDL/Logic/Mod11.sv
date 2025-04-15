@@ -7,6 +7,8 @@ module Mod11 (
   AXI4S.Master out,
   AXI4S.Slave in 
 );
+localparam OUT_WIDTH = 4;
+localparam DATA_WIDTH = 6;
 initial
 begin
   input_size: assert ($bits(in.data) == 10)
@@ -15,9 +17,15 @@ begin
     $error("Assertion input_size failed for mod 11!");
     $finish;
     end
+  output_size: assert ($bits(out.data) == OUT_WIDTH)
+    else
+    begin
+    $error("Assertion ouput_size failed for mod 11!, The data width is %d", $bits(out.data));
+    $finish;
+    end
 end
 
-localparam DATA_WIDTH = 6;
+
 localparam logic signed [DATA_WIDTH - 1:0] MOD_ARRAY [0:9] = {1, 2, 4, -3, 5, -1, -2, -4, 3, -5};
 
 logic [9:0] [DATA_WIDTH - 1:0] mod_data;
@@ -53,7 +61,7 @@ begin
     if (out.ready)
     begin
         out.valid <= mod_out.valid;
-        out.data[DATA_WIDTH - 1:0] <= $signed(mod_out.data) < 0 ? ($signed(mod_out.data) < -6'd11 ? mod_out.data + 6'd22 : mod_out.data + 6'd11 ) : (mod_out.data >= 6'd11 ? mod_out.data - 6'd11 : mod_out.data);
+        out.data[OUT_WIDTH - 1:0] <= $signed(mod_out.data) < 0 ? ($signed(mod_out.data) < -6'd11 ? mod_out.data + 6'd22 : mod_out.data + 6'd11 ) : (mod_out.data >= 6'd11 ? mod_out.data - 6'd11 : mod_out.data);
         out.last <= mod_out.last;
     end
 end

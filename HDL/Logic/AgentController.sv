@@ -2,19 +2,17 @@
  `define AGENT_CONTROLLER
 
 module AgentController #(
-    parameter long int ATTEMPT_COUNT_SIZE = $clog2(1_000_000_000),
-    parameter long int ATTEMPT_COUNT_LIMIT = 1_000_000_000,
+    parameter ATTEMPT_COUNT_SIZE = $clog2(1_000_000_000),
+    parameter ATTEMPT_COUNT_LIMIT = 1_000_000_000,
     parameter SAMPLE_COUNT_SIZE = 8,
-    parameter SAMPLE_COUNT_LIMIT = 1 << SAMPLE_COUNT_SIZE,
-    parameter RUN_TIME_COUNT_SIZE = 8
+    parameter SAMPLE_COUNT_LIMIT = 1 << SAMPLE_COUNT_SIZE
 )(
   input wire clk,
   input wire resetn,
   input wire equal,
   input wire validConfig,
-  input valid samplingComplete,
-  input wire [SAMPLE_COUNT_SIZE - 1:0] sampleCount,
-  input wire [RUN_TIME_COUNT_SIZE - 1:0] runTimeCount,
+  input wire samplingComplete,
+  input wire [SAMPLE_COUNT_SIZE :0] sampleCount,
   output logic [ATTEMPT_COUNT_SIZE - 1:0] attemptCount,
   output logic found,
   output logic loadConfig,
@@ -63,9 +61,9 @@ begin
         next_state = validConfig ? PROCESS : LOAD_CONFIG;
      PROCESS:
      begin
-        if (~validConfig)
+        if (validConfig)
         begin
-        if (attemptCount == ATTEMPT_COUNT_LIMIT)
+        if (attemptCount >= ATTEMPT_COUNT_LIMIT)
           next_state = TIMED_OUT;
         else
           next_state = equal ?(sampleCount == SAMPLE_COUNT_LIMIT ? RESULT_FOUND : PROCESS ): SAMPLE;
@@ -77,7 +75,7 @@ begin
      end
      SAMPLE:
      begin
-        if (~validConfig)
+        if (validConfig)
         begin
           next_state = samplingComplete ? PROCESS : SAMPLE;
         end
@@ -87,9 +85,9 @@ begin
         end
      end
      TIMED_OUT:
-        next_state = validConfig ? LOAD_CONFIG : TIMED_OUT;
+        next_state = ~validConfig ? LOAD_CONFIG : TIMED_OUT;
      RESULT_FOUND:
-        next_state = validConfig ? LOAD_CONFIG : RESULT_FOUND;
+        next_state = ~validConfig ? LOAD_CONFIG : RESULT_FOUND;
      default: begin
         next_state = LOAD_CONFIG;
      end
@@ -216,7 +214,7 @@ begin
      SHUFFLE:
         next_state = sample ? (validShuffle ? SAMPLE : SHUFFLE) : IDLE;
      SAMPLE:
-        next_state = sample ? (validSample ? SAMPLE : IDLE) : IDLE;
+        next_state = sample ? (validSample ? IDLE : SAMPLE) : IDLE;
      default: begin
         next_state = IDLE;
      end
