@@ -225,11 +225,11 @@ always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
-  outgoingData[NUMBER_READ_WORDS - 1:METRICS_COUNT] <= incomingData[NUMBER_WRITE_WORDS - 1:1];
+  outgoingData[NUMBER_READ_WORDS - 1:METRICS_COUNT + STATUS_COUNT] <= incomingData[NUMBER_WRITE_WORDS - 1:1];
 end
 else
 begin
-  outgoingData[NUMBER_READ_WORDS - 1:METRICS_COUNT] <= 0;
+  outgoingData[NUMBER_READ_WORDS - 1:METRICS_COUNT + STATUS_COUNT] <= 0;
 end
 end
 
@@ -253,7 +253,7 @@ always_ff @ (posedge clk)
 begin
 if(resetn)
 begin
-  outgoingData[STATUS_COUNT - 1:0] <= {{(32 - 5){1'b0}},done, found, timedOut, equal, stored};
+  outgoingData[STATUS_COUNT - 1:0] <= {{(32 - 7){1'b0}},done, found, timedOut, equal, stored, resetFunc, validConfig};
 end
 else
 begin

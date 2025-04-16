@@ -113,7 +113,7 @@ SearchCircuitConfig #(
   .sample(enable_sample),
   .validConfigOut(valid_sample),
   .wireDataIn(sample_input),
-  .shuffleSeeds(incomingConfig.sampleLfsrSeeds),
+  .sampleSeeds(incomingConfig.sampleLfsrSeeds),
   .wires(wire_configs)
 );
 

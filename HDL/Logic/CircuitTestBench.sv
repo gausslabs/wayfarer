@@ -1,6 +1,8 @@
 `ifndef CIRCUIT_TEST_BENCH
  `define CIRCUIT_TEST_BENCH
 
+`include "AgentTypes.sv"
+
 module CircuitTestBench #(
   parameter NUMBER_OF_GATES = 5,
   parameter NUMBER_OF_STAGES = 8,

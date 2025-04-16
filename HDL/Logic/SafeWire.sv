@@ -13,7 +13,7 @@ module SearchCircuitConfig #(
   input wire sample,
   output logic validConfigOut,
   input ShufflePkg::WireData wireDataIn,
-  input SoftwareInterfacePkg::ShuffleLfsrType shuffleSeeds,
+  input SoftwareInterfacePkg::SampleLfsrType sampleSeeds,
   output AgentPkg::GateConfig wires [0:NUMBER_OF_GATES - 1]
 );
 ////////////////////////////////////////////////////////////////////
@@ -29,8 +29,8 @@ for (i=0; i<NUMBER_OF_GATES; i++) begin
   assign active_wires[0][i] = wireDataIn[0][i];
   assign active_wires[1][i] = wireDataIn[1][i];
   assign active_wires[2][i] = wireDataIn[2][i];
-  assign config_seeds[i][0] = shuffleSeeds[i][0];
-  assign config_seeds[i][1] = shuffleSeeds[i][1];
+  assign config_seeds[i][0] = sampleSeeds[i][0];
+  assign config_seeds[i][1] = sampleSeeds[i][1];
 
   SafeConfig #(
     .LFSR_SIZE(LFSR_SIZE)

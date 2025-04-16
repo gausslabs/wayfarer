@@ -109,3 +109,11 @@ vivado_sim_proj(
   top_module = "FullShuffle_TB",
   hex_files = []
 )
+
+vivado_sim_proj(
+  name = "Shuffle_Agent_TB",
+  srcs = glob(["HDL/Types/*.sv", "HDL/Logic/*.sv", "HDL/Tests/Infra/*.sv", "HDL/Generated/*.sv", "HDL/Tests/SimpleTests/*.sv"]),
+  includes = ["./HDL/Types", "./HDL/Logic", "./HDL/Tests/Infra", "./HDL/Generated", "./HDL/Tests/SimpleTests"],
+  top_module = "Shuffle_Agent_TB",
+  hex_files = []
+)
