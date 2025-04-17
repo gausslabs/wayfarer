@@ -2,6 +2,7 @@
  `define SW_INTERFACE_TYPES
 
 `include "AgentTypes.sv"
+`include "ShuffleType.sv"
 
 package SoftwareInterfacePkg;
 

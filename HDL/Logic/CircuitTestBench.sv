@@ -103,7 +103,7 @@ ParallelStreamingCircuit #(
   .resetn(resetn),
   .validConfigIn(validConfigIn),
   .validConfigOut(reference_config_loaded), 
-  .configs(searchGateConfigs),
+  .configs(referenceGateConfigs),
   .out(gate_input[2]),  
   .passThroughOut(passthrough[2]),
   .in(gate_input[1]), 

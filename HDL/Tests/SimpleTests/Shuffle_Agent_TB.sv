@@ -74,19 +74,19 @@ agent_configs[1].bSelect = 4'd4;
 agent_configs[1].aSelect = 4'd9;
 
 agent_configs[2].gateSelect = 4'd9;
-agent_configs[2].cSelect = 4'd5;
-agent_configs[2].bSelect = 4'd6;
-agent_configs[2].aSelect = 4'd10;
+agent_configs[2].cSelect = 4'd1;
+agent_configs[2].bSelect = 4'd2;
+agent_configs[2].aSelect = 4'd8;
 
 agent_configs[3].gateSelect = 4'd6;
-agent_configs[3].cSelect = 4'd7;
-agent_configs[3].bSelect = 4'd8;
-agent_configs[3].aSelect = 4'd0;
+agent_configs[3].cSelect = 4'd1;
+agent_configs[3].bSelect = 4'd2;
+agent_configs[3].aSelect = 4'd8;
 
 agent_configs[4].gateSelect = 4'd5;
-agent_configs[4].cSelect = 4'd3;
-agent_configs[4].bSelect = 4'd7;
-agent_configs[4].aSelect = 4'd2;
+agent_configs[4].cSelect = 4'd1;
+agent_configs[4].bSelect = 4'd2;
+agent_configs[4].aSelect = 4'd8;
 
 agentConfig.gateConfigs[0] = agent_configs[0];
 agentConfig.gateConfigs[1] = agent_configs[1];
@@ -98,7 +98,7 @@ agentConfig.gateConfigs[4] = agent_configs[4];
 targets.row[0] = {0};
 controls.row[0][0] = {0};
 controls.row[0][1] = {0};
-targets.row[1] = '{position: 4'd3, present: 1'b1};
+targets.row[1] = '{position: 4'd3, present: 1'b0};
 controls.row[1][0] = {0};
 controls.row[1][1] = {0};
 targets.row[2] = {0};
@@ -108,8 +108,8 @@ targets.row[3] = {0};
 controls.row[0][3] = {0};
 controls.row[1][3] = {0};
 targets.row[4] = {0};
-controls.row[0][4] = '{position: 4'd7, present: 1'b1};
-controls.row[1][4] = '{position: 4'd3, present: 1'b1};
+controls.row[0][4] = '{position: 4'd7, present: 1'b0};
+controls.row[1][4] = '{position: 4'd3, present: 1'b0};
 
 for (int i=0; i<5; i++) begin
   $display("The active wire of the target[%0d] is %0d", i, targets.row[i].position);
