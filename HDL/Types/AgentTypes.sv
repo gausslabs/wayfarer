@@ -114,6 +114,10 @@ typedef struct packed {
     nibbleType aSelect;
 } GateConfig;
 
+function logic gate_collision(GateConfig value);
+    gate_collision = ((value.aSelect == value.bSelect)) | ((value.aSelect == value.cSelect)) | ((value.bSelect == value.cSelect));
+endfunction
+
 typedef union packed {
     GateConfig configValue;
     logic [GATE_CONFIG_IN_STREAM -1 :0] [DATA_WIDTH - 1:0] data;

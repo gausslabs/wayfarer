@@ -51,7 +51,7 @@ AgentWithShuffle #(
     .attemptCount(attemptCount)
 );
 
-always #5 clk = ~clk;
+always #2ns clk = ~clk;
 
 
 
@@ -127,7 +127,7 @@ resetn = 1;
 #20;
 resetFunc = 1;
 validConfig = 1;
-#1000;
+#3us;
 $finish;
 end
 

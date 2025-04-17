@@ -31,6 +31,7 @@ logic load_config, sample, sampling_complete, valid_sample, valid_shuffle, enabl
 ///////////////////////////////////////////////////////////////////////////
 // Shuffle controller
 ///////////////////////////////////////////////////////////////////////////
+assign sampling_complete = valid_sample;
 AgentController #(
     .ATTEMPT_COUNT_SIZE(ATTEMPT_COUNT_SIZE),
     .ATTEMPT_COUNT_LIMIT(ATTEMPT_COUNT_LIMIT),

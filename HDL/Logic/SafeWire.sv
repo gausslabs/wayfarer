@@ -72,7 +72,7 @@ assign wires.bSelect = wire_config.bSelect;
 assign wires.gateSelect = gate_config.data;
 
 assign validPermutation = valid_wire & gate_config.valid;
-AXI4S #(.DATA_WIDTH(4)) gate_config();
+AXI4S #(.DATA_WIDTH(4)) gate_config(), gate_config_buffered();
 
 PulseGenerator pulse_generator (
   .clk(clk),
@@ -101,11 +101,21 @@ SafeWireConfig #(
 // gate config
 ////////////////////////////////////////////////////////////////////////////
 
+AXISFIFO #(
+  .DATA_WIDTH(14),
+  .STORE_SIZE(2)
+)gate_config_fifo (
+  .clk(clk),
+  .resetn(resetn),
+  .out(gate_config),
+  .in(gate_config_buffered) 
+);
+
 LFSR10MOD11 gate_prng (
   .clk(clk),
   .resetn(resetn),
   .seed(seeds[1]),
-  .out(gate_config)
+  .out(gate_config_buffered)
 );
 
 endmodule : SafeConfig
@@ -176,10 +186,12 @@ begin
   wires.cSelect <= activeWireConfig[0].present ? activeWireConfig[0].position : wires_values[0];
   wires.aSelect <= activeWireConfig[1].present ? activeWireConfig[1].position : wires_values[1];
   wires.bSelect <= activeWireConfig[2].present ? activeWireConfig[2].position : wires_values[2];
+  validPermutation <= valid_sample;
 end
 else
 begin
   wires <= 0;
+  validPermutation <= 0;
 end
 end
 
@@ -203,7 +215,7 @@ always_comb
 begin
   case (current_state)
     SAMPLE:
-        next_state = valid_sample ? IDLE : SAMPLE;
+        next_state = ~sample ? IDLE : SAMPLE;
     IDLE:
         next_state = sample ? SAMPLE : IDLE;    
     default: begin
@@ -212,7 +224,6 @@ begin
   endcase
 end
 
-assign validPermutation = (current_state == IDLE);
 logic sample_pulse;
 PulseGenerator pulse_generator (
   .clk(clk),

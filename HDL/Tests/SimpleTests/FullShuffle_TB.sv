@@ -9,7 +9,7 @@ typedef struct {
     logic shuffle_command;
 } TestCase;
 
-logic clk, resetn, valid_shuffle, collision;
+logic clk, resetn, valid_shuffle, collision, valid;
 TestCase tc;
 ShufflePkg::WireData wires_out;
 
@@ -58,6 +58,16 @@ valid_output: assert
     else 
     begin
     $error("Assertion collision failed! %b != 1'b0 ",collision);
+    end
+
+different_output: assert 
+    property (                                  
+            @(posedge clk) disable iff (~resetn)        // sampling event
+            $rose(out.valid)  |->  (out.data != $past(out.data))        // expression to check
+        )
+    else 
+    begin
+    $error("Assertion different values failed! %b ",out.data);
     end
 
 localparam int WIRE_SIZE = 4;
@@ -110,7 +120,7 @@ tc.shuffle_command = 0;
  #20;
  tc.shuffle_command = 1;
 
-#5000;
+#10us;
 $finish;
 end
 
