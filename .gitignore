@@ -1,6 +1,15 @@
+*.wcfg
 *.jou
 *.log
 .Xil/
 .vscode/
 bazel-*
 MODULE.bazel.lock
+*.pb
+xsim.dir/
+*.wdb
+*.vcd
+*.hex
+target/
+*_proj/
+.nvim/

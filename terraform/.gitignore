@@ -1,0 +1,5 @@
+terraform.tfstate*
+key.pem
+*.json
+*.lock.hcl
+.terraform

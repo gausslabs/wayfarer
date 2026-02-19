@@ -1,5 +1,11 @@
 set_part xc7a35tcpg236-1
-read_verilog -sv [glob ./HDL/*/*.sv]
-read_verilog -sv [glob ./HDL/Tests/Infra/*.sv]
-add_files ./HDL/Logic
-synth_design -top AXISSource  -lint
+#  [glob ./HDL/*/*.sv]
+# read_verilog -sv [glob ./HDL/Tests/Infra/*.sv]
+set src_dirs [list "./HDL/Logic" "./HDL/Tests/Infra" "./HDL/Genrated" ];
+
+foreach i $src_dirs {
+    foreach file [glob -nocomplain -directory $i *.sv] {
+        read_verilog -sv $file
+    }
+}
+synth_design -top AXISSource -include_dirs $src_dirs  -lint

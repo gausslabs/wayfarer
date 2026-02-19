@@ -1,0 +1,10 @@
+[package]
+name = "gate-layer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies.utilities]
+path = "../utilities"
+
+[dependencies]
+rust = { git = "https://github.com/gausslabs/obfustopia.git"} 

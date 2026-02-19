@@ -1,2 +1,25 @@
 bazel_dep(name = "rules_python", version = "0.40.0")
 bazel_dep(name = "rules_rust", version = "0.54.1")
+
+bazel_dep(name = "rules_shell", version = "0.3.0")
+
+rust = use_extension("@rules_rust//rust:extensions.bzl", "rust")
+rust.toolchain(edition = "2021")
+use_repo(
+    rust,
+    "rust_toolchains",
+)
+
+register_toolchains("@rust_toolchains//:all")
+
+# Option 1: Fully transient (Cargo.toml / Cargo.lock as source of truth).
+# crate = use_extension(
+#     "@rules_rust//crate_universe:extensions.bzl",
+#     "crate",
+# )
+# crate.from_cargo(
+#     name = "crates",
+#     cargo_lockfile = "//Models/utilities:Cargo.lock",
+#     manifests = ["//Models/utilities:Cargo.toml"],
+# )
+# use_repo(crate, "crates")

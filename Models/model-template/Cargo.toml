@@ -1,0 +1,11 @@
+[package]
+name = "{{project-name}}"
+version = "0.1.0"
+authors = ["anonsachin"]
+edition = "2021"
+
+[dependencies]
+rand = "0.8.5"
+
+[dependencies.utilities]
+path = "../utilities"

@@ -1,0 +1,12 @@
+[package]
+name = "permute-10"
+version = "0.1.0"
+authors = ["anonsachin"]
+edition = "2021"
+
+[dependencies]
+rand = "0.8.5"
+local-mixing ={ git = "https://github.com/phantomzone-org/local-mixing.git", branch = "lfsr-placement-logic"}
+
+[dependencies.utilities]
+path = "../utilities"

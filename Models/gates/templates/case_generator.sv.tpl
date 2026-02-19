@@ -1,0 +1,41 @@
+`ifndef {{module_name | upper }}_SV
+  `define {{module_name | upper }}_SV
+
+`default_nettype none
+///////////////////////////////////////////////////////////////////////////////////////
+// This is generated code please dont edit this but the emitter
+// This is all the safe permuations for a given number of Total wires.
+///////////////////////////////////////////////////////////////////////////////////////
+
+module {{module_name}} #(
+  parameter PERM_SIZE = {{perm_size}},
+  parameter PORT_SIZE = {{port_size}}
+) (
+  input wire [PERM_SIZE - 1:0] selection,
+  output logic [2:0] [PORT_SIZE- 1:0] permutation
+);
+
+always_comb
+begin
+case(selection)
+{% for case in cases %}
+  {{perm_size}}'d{{case.index}}:
+  begin
+    {% for permutation in case.permutations %}
+    permutation[{{permutation.index}}] = {{port_size}}'d{{permutation.value}};
+    {% endfor %}
+  end
+{% endfor %}
+  default:
+  begin
+    {% for permutation in default.permutations %}
+    permutation[{{permutation.index}}] = {{port_size}}'d{{permutation.value}};
+    {% endfor %}
+  end
+endcase
+end
+
+endmodule
+
+
+`endif
